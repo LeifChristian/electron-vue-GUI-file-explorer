@@ -25,7 +25,7 @@ const setNewDirectory = (newDirectory) => {
     if(i<1){
     console.log("directory: ", directoryInfo);
     let { currentDirectoryContents, currentDirectory, desktop } = directoryInfo;
-  
+
     //filter all results that are not directories or .psd files. this is string logic and could be done with mimetypes from backend
     currentDirectoryContents = currentDirectoryContents.filter(item => item.filename.includes('.psd') || item.isDirectory
     )
@@ -87,10 +87,10 @@ const path = currentDirectoryName.value + slash + e.filename
   files.value.forEach((file) => {
     //  console.log(file.filename); console.log(e.filename);
     if (file.filename == e.filename) {
-   
+
       if (file.isDirectory == true) {
         // console.log("file matched: ", file);
-     
+
         // console.log(newDirectoryString);
         setNewDirectory(newDirectoryString);
       }
@@ -123,24 +123,28 @@ const navigateToDrive = (theDrive) => {
 //likely the same '/' replacement used in isLinux, line 116
   theDrive == "C:\\" ? setNewDirectory("") : setNewDirectory(theDrive);
 };
-
 </script>
 
 <template>
   <div id="app">
     <div class="container">
       <div class="text-center">
-        <br /> <br>
-        <h1 class="text-white">Psd Explorer</h1><br>
-        <h3 class="text-primary"><span class="text-white"> Current Path:</span> {{ currentDirectoryName?.includes('\\') || currentDirectoryName?.includes('/') ? currentDirectoryName : currentDirectoryName + '\\'  }}</h3>
-      </div><br>
+        <br />
+        <br />
+        <h1 class="text-white">Psd Explorer</h1>
+        <br />
+        <h3 class="text-primary">
+          <span class="text-white"> Current Path:</span>
+          {{ currentDirectoryName?.includes('\\') || currentDirectoryName?.includes('/') ? currentDirectoryName : currentDirectoryName + '\\'  }}
+        </h3>
+      </div>
+      <br />
       <div id="buttonDiv">
-
-        <button class=" text-white buttonStyle" @click="upTheTree">
+        <button class="text-white buttonStyle" @click="upTheTree">
           <!-- <img style="" src="./assets/arrow.png" /> -->
-          <div style="">↸</div> 
+          <div style="">↸</div>
         </button>
-        
+
         <button
           v-if="!isLinux"
           class="text-white buttonStyle"
@@ -148,16 +152,16 @@ const navigateToDrive = (theDrive) => {
         >
           Desktop
         </button>
-        <div class="break"></div> 
+        <div class="break"></div>
 
         <button
-        class="btn text-light buttonStyle"
-        v-for="(drive, i) in drivesRef"
-        :key="i"
-        @click="navigateToDrive(drivesRef[i])"
-      >
-        {{ drive }}
-      </button>
+          class="btn text-light buttonStyle"
+          v-for="(drive, i) in drivesRef"
+          :key="i"
+          @click="navigateToDrive(drivesRef[i])"
+        >
+          {{ drive }}
+        </button>
         <!-- <button id="buttonStyle" @click="sendEvent">Test</button> -->
         <br />
       </div>
@@ -180,7 +184,6 @@ body {
 </style>
 
 <style scoped>
-
 #links a {
   text-decoration: none;
   color: white;
@@ -190,14 +193,14 @@ body {
   font-size: 3vw;
   font-weight: 450;
   justify-content: center;
-  font-family:'Segoe UI';
+  font-family: "Segoe UI";
   padding: 10px;
   margin-top: 2%;
   margin-left: 1%;
   margin-right: 1%;
-  background:   rgb(40,36,44);
-  border-radius: .5rem;
-  border: .6px solid gray;
+  background: rgb(40, 36, 44);
+  border-radius: 0.5rem;
+  border: 0.6px solid gray;
 }
 #buttonDiv {
   display: flex;
@@ -213,7 +216,6 @@ body {
 }
 
 .buttonStyle:hover {
-background: dodgerblue
- 
+  background: dodgerblue;
 }
 </style>
