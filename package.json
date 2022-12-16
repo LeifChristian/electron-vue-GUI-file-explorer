@@ -2,7 +2,7 @@
   "name": "vite-vue3-electron-ts-template",
   "private": true,
   "version": "0.0.0",
-  "author": "Your Name",
+  "author": "Leif Christian",
   "main": "dist/electron/main/main.js",
   "scripts": {
     "vite:dev": "vite",

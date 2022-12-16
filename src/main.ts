@@ -1,15 +1,25 @@
 /* eslint-disable */
 import "bootstrap/dist/css/bootstrap.min.css"
 import { createApp } from 'vue'
-import App from './App.vue'
-const {ipcRenderer} = window.require('electron') 
-var fs = require("fs");
-var mime = require("mime-types");
-
+import RootComponent from './RootComponent.vue'
+import { app, BrowserWindow, shell, ipcMain } from "electron";
+import { release } from "os";
+import { join } from "path";
+const { statSync } = require("fs");
 const os = require("os");
+const fs = require("fs");
 const isMac = os.platform() === "darwin";
 const isWindows = os.platform() === "win32";
 const isLinux = os.platform() === "linux";
+let nonLinux = "\\";
+let linux = "/";
+let slash: string;
+//path string concatenation check for linux systems
+!isLinux ? (slash = nonLinux) : (slash = linux);
+const {ipcRenderer} = window.require('electron') 
+var mime = require("mime-types");
+
+
 
 ipcRenderer.on("main-process-message", (_event, ...args) => {
     //   console.log(...args)  --> logs the time
@@ -79,5 +89,5 @@ ipcRenderer.on("main-process-message", (_event, ...args) => {
   });
   
 
-const app = createApp(App)
+const app = createApp(RootComponent)
 app.mount('#app')
