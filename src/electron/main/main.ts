@@ -7,6 +7,7 @@ const fs = require("fs");
 const isMac = os.platform() === "darwin";
 const isWindows = os.platform() === "win32";
 const isLinux = os.platform() === "linux";
+require('electron-reloader')(module)
 let nonLinux = "\\";
 let linux = "/";
 let slash: string;
@@ -19,7 +20,7 @@ console.log(
   isLinux ? "Linux" : isMac ? "Mac" : isWindows ? "Windows" : ""
 );
 
-const isDev = process.env.npm_lifecycle_event === "app:dev" ? true : false;
+const isDev = process.env.npm_lifecycle_event === "vite" ? true : false;
 
 let win: any;
 

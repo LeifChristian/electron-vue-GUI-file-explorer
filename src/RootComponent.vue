@@ -1,3 +1,49 @@
+<template>
+  <div id="app">
+    <div class="container">
+      <div class="text-center">
+        <br />
+        <br />
+        <h1 class="text-white">Psd Explorer</h1>
+        <br />
+        <h3 class="text-primary">
+          <span class="text-white"> Current Path:</span>
+          {{ currentDirectoryName?.includes('\\') || currentDirectoryName?.includes('/') ? currentDirectoryName : currentDirectoryName + '\\'  }}
+        </h3>
+      </div>
+      <br />
+      <div id="buttonDiv">
+        <button class="bg-dark text-white buttonStyle" @click="upTheTree">
+          <!-- <img style="" src="./assets/arrow.png" /> -->
+          <div style="">↸</div>
+        </button>
+        <button
+          v-if="!isLinux"
+          class="bg-dark text-white buttonStyle"
+          @click="toDesktop">
+          Desktop
+        </button>
+        <div class="break"></div>
+        <button
+          class="btn bg-dark text-light buttonStyle"
+          v-for="(drive, i) in drivesRef"
+          :key="i"
+          @click="navigateToDrive(drivesRef[i])">
+          {{ drive }}
+        </button>
+        <!-- <button id="buttonStyle" @click="sendEvent">Test</button> -->
+        <br />
+      </div>
+      <br /><br />
+      <div class="row" v-if="files.length > 0">
+        <div class="col-md-3" v-for="(file, i) in files" :key="i">
+          <File :file="file" @fileSelected="selected(file, files)" />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script setup>
 import { ref, onMounted } from "vue";
 import File from "./File.vue";
@@ -123,51 +169,6 @@ const navigateToDrive = (theDrive) => {
 };
 </script>
 
-<template>
-  <div id="app">
-    <div class="container">
-      <div class="text-center">
-        <br />
-        <br />
-        <h1 class="text-white">Psd Explorer</h1>
-        <br />
-        <h3 class="text-primary">
-          <span class="text-white"> Current Path:</span>
-          {{ currentDirectoryName?.includes('\\') || currentDirectoryName?.includes('/') ? currentDirectoryName : currentDirectoryName + '\\'  }}
-        </h3>
-      </div>
-      <br />
-      <div id="buttonDiv">
-        <button class="text-white buttonStyle" @click="upTheTree">
-          <!-- <img style="" src="./assets/arrow.png" /> -->
-          <div style="">↸</div>
-        </button>
-        <button
-          v-if="!isLinux"
-          class="text-white buttonStyle"
-          @click="toDesktop">
-          Desktop
-        </button>
-        <div class="break"></div>
-        <button
-          class="btn text-light buttonStyle"
-          v-for="(drive, i) in drivesRef"
-          :key="i"
-          @click="navigateToDrive(drivesRef[i])">
-          {{ drive }}
-        </button>
-        <!-- <button id="buttonStyle" @click="sendEvent">Test</button> -->
-        <br />
-      </div>
-      <br /><br />
-      <div class="row" v-if="files.length > 0">
-        <div class="col-md-3" v-for="(file, i) in files" :key="i">
-          <File :file="file" @fileSelected="selected(file, files)" />
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
 
 <style>
 body {
@@ -183,14 +184,13 @@ body {
 .buttonStyle {
   width: 20%;
   font-size: 3vw;
-  font-weight: 450;
+  font-weight: 500;
   justify-content: center;
   font-family: "Segoe UI";
   padding: 10px;
   margin-top: 2%;
   margin-left: 1%;
   margin-right: 1%;
-  background: rgb(40, 36, 44);
   border-radius: 0.5rem;
   border: 0.6px solid gray;
 }
