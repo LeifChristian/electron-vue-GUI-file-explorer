@@ -47,6 +47,7 @@ const getDrivesEvent = () => {
 };
 //onMounted function. returns OS type and gets available drives.
 onMounted(() => {
+  console.log("Operating system is: ", isLinux ? "linux" : isWindows ? "windows" : isMac ? "mac" : null)
   getDrivesEvent();
   ipcRenderer.on("os", (a, b) => {
     console.log(b);
@@ -94,28 +95,25 @@ const path = currentDirectoryName.value + slash + e.filename
         // console.log(newDirectoryString);
         setNewDirectory(newDirectoryString);
       }
-      // <--  P o i n t   o f   E n t r y
       //below else statement is where the conversion functionality will execute once a .psd file is clicked.
-      else {alert("Hi there! " + newDirectoryString)}
-
+      else {
+          // <--  P o i n t   o f   E n t r y
+        alert("Hi there! " + newDirectoryString)}
     }
   })
   ;
 };
-
 //navigate up the directory tree
 const upTheTree = () => {
   console.log(currentDirectoryName.value, "up the tree");
   ipcRenderer.send("upTheTree", currentDirectoryName.value);
 };
-
 //navigate to desktop
 //No logic required as the button only displays if desktop is available
 //(v-if <button> in App.vue template)
 const toDesktop = () => {
   setNewDirectory(desktopRef.value);
 };
-
 //navigate to another of the available disk drives
 const navigateToDrive = (theDrive) => {
   console.log(theDrive);
@@ -144,22 +142,18 @@ const navigateToDrive = (theDrive) => {
           <!-- <img style="" src="./assets/arrow.png" /> -->
           <div style="">↸</div>
         </button>
-
         <button
           v-if="!isLinux"
           class="text-white buttonStyle"
-          @click="toDesktop"
-        >
+          @click="toDesktop">
           Desktop
         </button>
         <div class="break"></div>
-
         <button
           class="btn text-light buttonStyle"
           v-for="(drive, i) in drivesRef"
           :key="i"
-          @click="navigateToDrive(drivesRef[i])"
-        >
+          @click="navigateToDrive(drivesRef[i])">
           {{ drive }}
         </button>
         <!-- <button id="buttonStyle" @click="sendEvent">Test</button> -->
@@ -178,11 +172,9 @@ const navigateToDrive = (theDrive) => {
 <style>
 body {
   background: black;
-  color: white;
   text-align: center;
 }
 </style>
-
 <style scoped>
 #links a {
   text-decoration: none;
@@ -209,12 +201,10 @@ body {
   padding: 2px;
   text-align: center;
 }
-
 .break {
   flex-basis: 100%;
   height: 0;
 }
-
 .buttonStyle:hover {
   background: dodgerblue;
 }

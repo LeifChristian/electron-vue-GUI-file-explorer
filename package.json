@@ -5,6 +5,8 @@
   "author": "Leif Christian",
   "main": "dist/electron/main/main.js",
   "scripts": {
+    "go": "npm run vite:build && tsc && electron .",
+    "app:preview": "npm run vite:build && tsc && electron .",
     "vite:dev": "vite",
     "vite:build": "vue-tsc --noEmit && vite build",
     "vite:preview": "vite preview",
@@ -13,7 +15,12 @@
     "lint": "eslint -c .eslintrc --ext .ts ./src",
     "dev": "tsc && concurrently vite \" electron .\" \"tsc -w\"",
     "app:build": "npm run vite:build && tsc && electron-builder",
-    "app:preview": "npm run vite:build && tsc && electron ."
+    "vite": "vite"
+  },
+  "debug": {
+    "env": {
+      "VITE_DEV_SERVER_URL": "http://127.0.0.1:3344"
+    }
   },
   "build": {
     "appId": "YourAppID",
@@ -52,9 +59,12 @@
   "dependencies": {
     "@popperjs/core": "^2.11.6",
     "bootstrap": "^5.2.3",
+    "dotenv": "^16.0.3",
     "drivelist": "^11.0.4",
     "mime-types": "^2.1.35",
     "os": "^0.1.2",
+    "vite-plugin-electron": "^0.10.4",
+    "vite-plugin-electron-renderer": "^0.11.3",
     "vue": "^3.2.25"
   },
   "devDependencies": {
