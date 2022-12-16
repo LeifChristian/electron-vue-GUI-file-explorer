@@ -187,7 +187,7 @@ body {
 }
 .buttonStyle {
   width: 20%;
-  font-size: 1.7em;
+  font-size: 3vw;
   font-weight: 450;
   justify-content: center;
   font-family:'Segoe UI';
