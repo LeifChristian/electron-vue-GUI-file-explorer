@@ -23,12 +23,12 @@ const isDev = process.env.npm_lifecycle_event === "app:dev" ? true : false;
 
 let win:any;
 
-win?.webContents.send(
-    "os",
-    isLinux ? "linux" : isMac ? "mac" : isWindows ? "windows" : null
-  );
+// mainWindow?.webContents.send(
+//     "os",
+//     isLinux ? "linux" : isMac ? "mac" : isWindows ? "windows" : null
+//   );
 
-function createWindow() {
+async function createWindow() {
     // Create the browser window.
     const mainWindow = new BrowserWindow({
         width: 800,
@@ -56,7 +56,7 @@ function createWindow() {
             });
             console.log(drives);
             //send drive information to frontend
-            win.webContents.send("backEndMsg", drives);
+            mainWindow.webContents.send("backEndMsg", drives);
           } catch (error) {
             console.log(error);
           }
@@ -108,7 +108,7 @@ function createWindow() {
           }
         }
         //send directory contents of new directory to frontend
-        win.webContents.send("receiveDirectoryContents", {
+        mainWindow.webContents.send("receiveDirectoryContents", {
           currentDirectory: initialDirectory,
           currentDirectoryContents: dirContentsArray,
           desktop: desktopDir,
@@ -129,18 +129,18 @@ function createWindow() {
         if (!isLinux && up.length >= 2) {
           newup = up.slice(0, up.length - 1).join(slash);
           console.log(newup, "--new directory");
-          win.webContents.send("newDirectory", newup);
+          mainWindow.webContents.send("newDirectory", newup);
         }
         if (isLinux && up.length >= 3) {
           newup = up.slice(0, up.length - 1).join(slash);
-          win.webContents.send("newDirectory", newup);
+          mainWindow.webContents.send("newDirectory", newup);
         }
         // else do nothing
         else return;
       });
 
-      win.webContents.on("did-finish-load", () => {
-        win?.webContents.send("main-process-message", new Date().toLocaleString());
+      mainWindow?.webContents.on("did-finish-load", () => {
+        mainWindow?.webContents.send("main-process-message", new Date().toLocaleString());
       });
     
     // and load the index.html of the app.
