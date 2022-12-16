@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup>
 import { ref, onMounted } from "vue";
 import File from "./File.vue";
 const { ipcRenderer } = window.require('electron');
@@ -12,8 +12,7 @@ const isMac = os.platform() === "darwin";
 const isWindows = os.platform() === "win32";
 const isLinux = os.platform() === "linux";
 
-// This starter template is using Vue 3 <script setup> SFCs
-// Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
+//set new directory and send to backend
 const setNewDirectory = (newDirectory) => {
   // console.log("current directory: ", newDirectory);
   //send setDirectory to backend
@@ -26,6 +25,7 @@ const setNewDirectory = (newDirectory) => {
     if(i<1){
     console.log("directory: ", directoryInfo);
     let { currentDirectoryContents, currentDirectory, desktop } = directoryInfo;
+  
     //filter all results that are not directories or .psd files. this is string logic and could be done with mimetypes from backend
     currentDirectoryContents = currentDirectoryContents.filter(item => item.filename.includes('.psd') || item.isDirectory
     )

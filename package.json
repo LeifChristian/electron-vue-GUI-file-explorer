@@ -11,7 +11,7 @@
     "ts": "tsc",
     "watch": "tsc -w",
     "lint": "eslint -c .eslintrc --ext .ts ./src",
-    "app:dev": "tsc && concurrently vite \" electron .\" \"tsc -w\"",
+    "dev": "tsc && concurrently vite \" electron .\" \"tsc -w\"",
     "app:build": "npm run vite:build && tsc && electron-builder",
     "app:preview": "npm run vite:build && tsc && electron ."
   },
