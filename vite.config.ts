@@ -16,8 +16,6 @@ function loadEnvPlugin(): Plugin {
     config(config, env) {
       const root = config.root ?? process.cwd();
       const result = loadEnv(env.mode, root);
-      // Remove the vite-plugin-electron injected env.
-      delete result.VITE_DEV_SERVER_URL;
       config.esbuild ??= {};
       config.esbuild.define = {
         ...config.esbuild.define,

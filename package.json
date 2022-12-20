@@ -6,7 +6,7 @@
   "main": "dist/electron/main/main.js",
   "scripts": {
     "go": "npm run vite:build && tsc && electron .",
-    "dev": "bash clean.sh",
+    "dev": "bash devScript.sh",
     "novite": "tsc && electron .",
     "vite:dev": "vite",
     "vite:build": "vue-tsc --noEmit && vite build",
@@ -19,7 +19,7 @@
   },
   "debug": {
     "env": {
-      "VITE_DEV_SERVER_URL": "http://127.0.0.1:3344"
+      "VITE_DEV_SERVER_URL": ""
     }
   },
   "build": {

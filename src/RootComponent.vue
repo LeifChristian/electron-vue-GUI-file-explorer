@@ -7,15 +7,9 @@
         <h1 class="text-white">Psd Explorer</h1>
         <br />
 
-      <CreateProject v-if="toggleCreateProject "></CreateProject>
-   <!-- <div style="color: white">{{ projectName }}</div>    -->
-  <!-- <div style="color: white">{{ arrayOfLabels.length > 0 ? arrayOfLabels : null}}</div>  -->
-
-  <!-- <div style="color: white" v-for="label in arrayOfLabels" :key="label">{{label}}</div> -->
+      <CreateProject v-if="toggleCreateProject"></CreateProject>
   <div style="color: white">{{label}}</div>
-   
       <File v-if="show && !toggleCreateProject" :projectName="projectName" @fileSelected="selected(projectName)" />
-
 </div>
     </div>
   </div>
@@ -31,29 +25,10 @@ const os = require("os");
 const isMac = os.platform() === "darwin";
 const isWindows = os.platform() === "win32";
 const isLinux = os.platform() === "linux";
-const dropFiles = ref({})
 const toggleCreateProject = ref(false);
 const arrayOfLabels = ref([])
 const projectName = ref()
 const show = ref(false);
-
-// const dropEvent = async (e) => {
-//   dropFiles.value = e.dataTransfer.files;
-//   console.log(e.dataTransfer.files, 'files to transfer from RootComponent.vue line 66')
-
-//   let newOne = Object.values(e.dataTransfer.files);
-//    console.log(newOne[0], '-- the filename RootComponent line 69')
-
-//   const dropFileObject = {
-//     modified: newOne[0].lastModified,
-//     name: newOne[0].name,
-//     path: newOne[0].path,
-//     type: newOne[0].type
-//     }
-
-//   // ipcRenderer.send("transfer", JSON.stringify(newOne[0]))
-//   ipcRenderer.send("transfer", dropFileObject)
-// }
 
 ipcRenderer.on('fileManager', ()=>{ipcRenderer.send('openFileManager')})
 ipcRenderer.on('fileManagerOpen', (a,theFilePath)=> {alert(theFilePath + ' <-- file to be imported');
@@ -72,7 +47,7 @@ ipcRenderer.send("makeProject", length)
  }
 })
 
-ipcRenderer.on('duplicateWarning', ()=> {alert('There is already a project with that name')})
+ipcRenderer.on('duplicateWarning', ()=> {alert('There is already a project with that name'); return;})
 
 ipcRenderer.on('navigateToProject', (a,b)=> {
   toggleCreateProject.value = false

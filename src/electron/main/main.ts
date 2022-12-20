@@ -37,13 +37,12 @@ async function createWindow() {
     },
   });
 
+  let projectFolderArray:any = [];
   ipcMain.on('transfer', (a,b,c)=>{console.log(b, '<-- the file to be transferred', c, " <-- the project/folder name"); 
     mainWindow.webContents.send('ok', b, c)
     console.log(process.cwd())
-  
   })
 
- let projectFolderArray:any = [];
 console.log(process.cwd(), ' <-- current directory')
 
 const getProjects = (b?:string) => {
@@ -60,7 +59,7 @@ if(fs.existsSync('projectsFolder'
   if(b && !existsSync(`projectsFolder/${b}`))
   //create it
   {fs.mkdirSync(`projectsFolder/${b}`)}
-  //if not, notify user that there is a duplicate 
+  //if not,notify user that there is a duplicate 
   else{mainWindow.webContents.send('duplicateWarning')}
 //read contents of projectsFolder
   let theContents = fs.readdirSync("projectsFolder")
@@ -84,7 +83,7 @@ mainWindow.webContents.send('allProjects', JSON.stringify(menuArray))
 }
 
 
-let thing = [ {
+let viewTab = [ {
   label: 'View',
   submenu: [
      {
@@ -115,7 +114,7 @@ let thing = [ {
 },]
 
 
-  const template:any = [
+  const topMenu:any = [
     {
        label: 'File',
        submenu: [
@@ -134,15 +133,21 @@ let thing = [ {
             }
           },
           
-          ...projectFolderArray
+          ...projectFolderArray,
+          {
+            label: 'Quit',
+            click() {
+                app.quit();
+            }
+        }
    
        ]
     },
     
-    ...thing
+    ...viewTab
     
   ]
-  const menu = Menu.buildFromTemplate(template)
+  const menu = Menu.buildFromTemplate(topMenu)
   Menu.setApplicationMenu(menu)
 }
 getProjects();
@@ -170,17 +175,12 @@ ipcMain.on('makeProject', (a,b) => {getProjects(b)})
   });
 
   // load the index.html of the app.
-  if (!isDev) {
+  if (isDev) {
     mainWindow.loadURL("http://localhost:3000"); // Open the DevTools.
     mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(join(__dirname, "../../index.html"));
   }
-  // mainWindow.loadURL( //this doesn't work on macOS in build and preview mode
-  //     isDev ?
-  //     'http://localhost:3000' :
-  //     join(__dirname, '../../index.html')
-  // );
 }
 
 
@@ -190,8 +190,6 @@ ipcMain.on('makeProject', (a,b) => {getProjects(b)})
 app.whenReady().then(() => {
   createWindow();
   app.on("activate", function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });

@@ -3,18 +3,14 @@ var path = require("path");
 var electron = require("electron");
 var originalFs = require("original-fs");
 require("path");
-const { statSync } = require("fs");
+require("fs");
 const os = require("os");
 const fs = require("fs");
 require("node-disk-info");
 os.platform() === "darwin";
 os.platform() === "win32";
-const isLinux = os.platform() === "linux";
-let nonLinux = "\\";
-let linux = "/";
-let slash;
+os.platform() === "linux";
 const { dialog } = require("electron");
-!isLinux ? slash = nonLinux : slash = linux;
 const isDev = {}.npm_lifecycle_event === "app:dev" ? true : false;
 console.log("main.ts loaded");
 async function createWindow() {
@@ -27,12 +23,12 @@ async function createWindow() {
       contextIsolation: false
     }
   });
+  let projectFolderArray = [];
   electron.ipcMain.on("transfer", (a, b, c) => {
     console.log(b, "<-- the file to be transferred", c, " <-- the project/folder name");
     mainWindow.webContents.send("ok", b, c);
     console.log(process.cwd());
   });
-  let projectFolderArray = [];
   console.log(process.cwd(), " <-- current directory");
   const getProjects = (b) => {
     if (!fs.existsSync("projectsFolder")) {
@@ -63,7 +59,7 @@ async function createWindow() {
       projectFolderArray = menuArray;
       mainWindow.webContents.send("allProjects", JSON.stringify(menuArray));
     }
-    let thing = [{
+    let viewTab = [{
       label: "View",
       submenu: [
         {
@@ -92,7 +88,7 @@ async function createWindow() {
         }
       ]
     }];
-    const template = [
+    const topMenu = [
       {
         label: "File",
         submenu: [
@@ -110,12 +106,18 @@ async function createWindow() {
               mainWindow.webContents.send("fileManager");
             }
           },
-          ...projectFolderArray
+          ...projectFolderArray,
+          {
+            label: "Quit",
+            click() {
+              electron.app.quit();
+            }
+          }
         ]
       },
-      ...thing
+      ...viewTab
     ];
-    const menu = electron.Menu.buildFromTemplate(template);
+    const menu = electron.Menu.buildFromTemplate(topMenu);
     electron.Menu.setApplicationMenu(menu);
   };
   getProjects();
@@ -133,71 +135,6 @@ async function createWindow() {
   });
   electron.ipcMain.on("makeProject", (a, b) => {
     getProjects(b);
-  });
-  electron.ipcMain.on("getDrives", (a, b) => {
-  });
-  electron.ipcMain.on("setDirectory", (theEvent, initialDirectory) => {
-    var _a;
-    mainWindow.webContents.send("ok", "setDirectory route success");
-    const homeDir = require("os").homedir();
-    let desktopDir = "";
-    let dirContentsArray = [];
-    let dirContents;
-    console.log("initialDirectory: ", initialDirectory);
-    try {
-      if (initialDirectory.length > 0) {
-        dirContents = fs == null ? void 0 : fs.readdirSync(initialDirectory);
-      } else {
-        dirContents = fs.readdirSync("C:\\");
-        initialDirectory = "C:\\";
-      }
-      console.log(dirContents, "contents");
-    } catch (error) {
-    }
-    if (!isLinux) {
-      desktopDir = `${homeDir}\\Desktop`;
-      console.log("desktop directory: ", desktopDir);
-    }
-    for (let theFile in dirContents) {
-      try {
-        let isDir;
-        let theString;
-        if ((_a = statSync(
-          initialDirectory + slash + dirContents[theFile]
-        )) == null ? void 0 : _a.isDirectory()) {
-          isDir = true;
-        } else {
-          isDir = false;
-        }
-        dirContentsArray.push({
-          filename: dirContents[theFile],
-          isDirectory: isDir
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    }
-    mainWindow.webContents.send("receiveDirectoryContents", {
-      currentDirectory: initialDirectory,
-      currentDirectoryContents: dirContentsArray,
-      desktop: desktopDir
-    });
-  });
-  electron.ipcMain.on("upTheTree", (a, b) => {
-    const up = b.split(slash);
-    console.log(up.length, "directory string length");
-    let newup;
-    console.log(up.length);
-    if (!isLinux && up.length >= 2) {
-      newup = up.slice(0, up.length - 1).join(slash);
-      console.log(newup, "--new directory");
-      mainWindow.webContents.send("newDirectory", newup);
-    }
-    if (isLinux && up.length >= 3) {
-      newup = up.slice(0, up.length - 1).join(slash);
-      mainWindow.webContents.send("newDirectory", newup);
-    } else
-      return;
   });
   mainWindow == null ? void 0 : mainWindow.webContents.on("did-finish-load", () => {
     mainWindow == null ? void 0 : mainWindow.webContents.send(
