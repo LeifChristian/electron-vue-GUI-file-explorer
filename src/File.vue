@@ -19,14 +19,14 @@
             {{ projectName }}{{setName(projectName)}}
           </p>
 
-          <button
+          <!-- <button
             id="psd"
             v-if="!file?.isDirectory"
             style="margin: auto; width: 100%"
             class="btn btn-primary"
           >
             Select
-          </button>
+          </button> -->
           <!-- <div style="display: none">{{letsgo()}}</div> -->
         </div>
       </button>

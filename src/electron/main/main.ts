@@ -127,7 +127,7 @@ let thing = [ {
             }
           },
           {
-            label: 'Open',
+            label: 'Import',
             click() {
               console.log("open file manager");
               mainWindow.webContents.send('fileManager');

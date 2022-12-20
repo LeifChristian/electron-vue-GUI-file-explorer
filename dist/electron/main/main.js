@@ -37,7 +37,7 @@ async function createWindow() {
         },
     });
     electron_1.ipcMain.on('transfer', (a, b, c) => {
-        console.log(b, c, 'b and c');
+        console.log(b, '<-- the file to be transferred', c, " <-- the project/folder name");
         mainWindow.webContents.send('ok', b, c);
         console.log(process.cwd());
     });
@@ -122,7 +122,7 @@ async function createWindow() {
                         }
                     },
                     {
-                        label: 'Open',
+                        label: 'Import',
                         click() {
                             console.log("open file manager");
                             mainWindow.webContents.send('fileManager');
@@ -184,26 +184,26 @@ async function createWindow() {
             // console.log('available drives: ', drives);
             // //send drive information to frontend
             // mainWindow.webContents.send("backEndMsg", drives);
-            nodeDiskInfo
-                .getDiskInfo()
-                .then((disks) => {
-                console.log("ASYNC results", disks);
-                console.log(typeof disks);
-                let arrayFrom = Object.values(disks);
-                let drivesArray = [];
-                arrayFrom.forEach((theDrive) => {
-                    drivesArray.push(theDrive?._mounted + slash);
-                });
-                // console.log(arrayFrom[0]?._mounted + slash)
-                console.log(drivesArray, "drives");
-                mainWindow.webContents.send("backEndMsg", drivesArray);
-            })
-                .catch((reason) => {
-                console.error(reason);
-            });
+            // nodeDiskInfo
+            //   .getDiskInfo()
+            //   .then((disks: any) => {
+            //     console.log("ASYNC results", disks);
+            //     console.log(typeof disks);
+            //     let arrayFrom = Object.values(disks);
+            //     let drivesArray: any = [];
+            //     arrayFrom.forEach((theDrive: any) => {
+            //       drivesArray.push(theDrive?._mounted + slash);
+            //     });
+            //     // console.log(arrayFrom[0]?._mounted + slash)
+            //     console.log(drivesArray, "drives");
+            //     mainWindow.webContents.send("backEndMsg", drivesArray);
+            //   })
+            //   .catch((reason: any) => {
+            //     console.error(reason);
+            //   });
         };
         // run the getDrives function
-        getDrives();
+        // getDrives();
     });
     //set directory route from frontend
     electron_1.ipcMain.on("setDirectory", (theEvent, initialDirectory) => {

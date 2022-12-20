@@ -6,7 +6,7 @@ require("path");
 const { statSync } = require("fs");
 const os = require("os");
 const fs = require("fs");
-const nodeDiskInfo = require("node-disk-info");
+require("node-disk-info");
 os.platform() === "darwin";
 os.platform() === "win32";
 const isLinux = os.platform() === "linux";
@@ -28,7 +28,7 @@ async function createWindow() {
     }
   });
   electron.ipcMain.on("transfer", (a, b, c) => {
-    console.log(b, c, "b and c");
+    console.log(b, "<-- the file to be transferred", c, " <-- the project/folder name");
     mainWindow.webContents.send("ok", b, c);
     console.log(process.cwd());
   });
@@ -104,7 +104,7 @@ async function createWindow() {
             }
           },
           {
-            label: "Open",
+            label: "Import",
             click() {
               console.log("open file manager");
               mainWindow.webContents.send("fileManager");
@@ -135,22 +135,6 @@ async function createWindow() {
     getProjects(b);
   });
   electron.ipcMain.on("getDrives", (a, b) => {
-    const getDrives = async () => {
-      nodeDiskInfo.getDiskInfo().then((disks) => {
-        console.log("ASYNC results", disks);
-        console.log(typeof disks);
-        let arrayFrom = Object.values(disks);
-        let drivesArray = [];
-        arrayFrom.forEach((theDrive) => {
-          drivesArray.push((theDrive == null ? void 0 : theDrive._mounted) + slash);
-        });
-        console.log(drivesArray, "drives");
-        mainWindow.webContents.send("backEndMsg", drivesArray);
-      }).catch((reason) => {
-        console.error(reason);
-      });
-    };
-    getDrives();
   });
   electron.ipcMain.on("setDirectory", (theEvent, initialDirectory) => {
     var _a;
