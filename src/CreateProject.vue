@@ -1,7 +1,8 @@
 <template>
     <div style="color: white">
 Create a Project <br> <br>
-    <input v-model="message" placeholder="edit me">
+<p>Enter project name</p>
+    <input v-model="message" placeholder="">
 <p> {{ message }}</p>
 <button @click="submit(message)">
     Submit
