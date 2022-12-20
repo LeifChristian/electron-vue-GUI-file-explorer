@@ -10,7 +10,7 @@
     "resolveJsonModule": true,
     "isolatedModules": false,
     "esModuleInterop": true,
-    "lib": ["esnext", "dom"],
+    "lib": ["es5", "es6", "esnext", "dom", "dom.iterable"],
     "skipLibCheck": true,
     "outDir": "dist/electron"
   },

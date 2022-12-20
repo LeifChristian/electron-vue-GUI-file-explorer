@@ -1,33 +1,29 @@
 import { join } from "path";
-import { app, BrowserWindow, shell, ipcMain } from "electron";
+import { app, BrowserWindow, shell, ipcMain, ipcRenderer, Menu } from "electron";
+import { existsSync } from "original-fs";
 const path = require("path");
 const { statSync } = require("fs");
 const os = require("os");
 const fs = require("fs");
+const nodeDiskInfo = require("node-disk-info");
 const isMac = os.platform() === "darwin";
 const isWindows = os.platform() === "win32";
 const isLinux = os.platform() === "linux";
-require('electron-reloader')(module)
 let nonLinux = "\\";
 let linux = "/";
 let slash: string;
+const { dialog } = require('electron')
 //path string concatenation check for linux systems
 !isLinux ? (slash = nonLinux) : (slash = linux);
-
-//log the os on the backend
-console.log(
-  "Operating system is:",
-  isLinux ? "Linux" : isMac ? "Mac" : isWindows ? "Windows" : ""
-);
-
-const isDev = process.env.npm_lifecycle_event === "vite" ? true : false;
-
+//log the os to the backend
+// console.log(
+//   "Operating system is:",
+//   isLinux ? "Linux" : isMac ? "Mac" : isWindows ? "Windows" : ""
+// );
+const isDev = process.env.npm_lifecycle_event === "app:dev" ? true : false;
 let win: any;
 
-// mainWindow?.webContents.send(
-//     "os",
-//     isLinux ? "linux" : isMac ? "mac" : isWindows ? "windows" : null
-//   );
+console.log("main.ts loaded");
 
 async function createWindow() {
   // Create the browser window.
@@ -41,32 +37,152 @@ async function createWindow() {
     },
   });
 
+ let projectFolderArray:any = [];
+console.log(process.cwd(), ' <-- current directory')
+
+const getProjects = (b?:string) => {
+
+  //does projectFolder exist?
+if (!fs.existsSync("projectsFolder")){
+  //if not, create it
+  fs.mkdirSync("projectsFolder");
+}
+//if it does exist
+if(fs.existsSync('projectsFolder'
+)){
+//if a parameter was passed to getProjects, and the folder for that parameter doesn't exist
+  if(b && !existsSync(`projectsFolder/${b}`))
+  //create it
+  {fs.mkdirSync(`projectsFolder/${b}`)}
+  //if not, notify user that there is a duplicate 
+  else{mainWindow.webContents.send('duplicateWarning')}
+//read contents of projectsFolder
+  let theContents = fs.readdirSync("projectsFolder")
+let menuArray:any = []
+//for each item in the contents
+theContents.forEach((item:any, b:any)=>{ 
+  console.log(item, b)
+  //turn it into a menu item
+  let innerObject = {
+  label: item,
+  click() {
+    console.log("hello from" + item + 'project');
+    mainWindow.webContents.send('navigateToProject', item);
+  }}
+  console.log(innerObject)
+  menuArray.push(innerObject)
+})
+
+projectFolderArray = menuArray;
+mainWindow.webContents.send('allProjects', JSON.stringify(menuArray))
+}
+
+  const template:any = [
+    {
+       label: 'File',
+       submenu: [
+          {
+            label: 'New Project',
+            click() {
+              console.log("hello from file menu");
+              mainWindow.webContents.send('createNewProject');
+            }
+          },
+          {
+            label: 'Open',
+            click() {
+              console.log("open file manager");
+              mainWindow.webContents.send('fileManager');
+            }
+          },
+          
+          ...projectFolderArray
+   
+       ]
+    },
+    
+  //  ...thing
+    
+  ]
+  const menu = Menu.buildFromTemplate(template)
+  Menu.setApplicationMenu(menu)
+}
+getProjects();
+
+ipcMain.on('openFileManager', ()=>{console.log('mergerrrrrrr');
+dialog.showOpenDialog({ properties: ['openFile'] }).then((e)=>{
+
+  if(e.filePaths[0].length){
+  console.log(e.filePaths[0]);
+  mainWindow.webContents.send('fileManagerOpen', e.filePaths[0])
+
+}
+  else{console.log('no length, cancelled')}
+
+})
+
+})
+ipcMain.on('makeProject', (a,b) => {getProjects(b)})
+
   ipcMain.on("getDrives", (a, b) => {
-    console.log("message from frontend:", JSON.parse(b));
+    // const getDrives = async () => {
+    //   let drives: any = [];
+    //   const drivelist = require("drivelist");
+    //   const theDrives = await drivelist.list();
+    //   try {
+    //     console.log(theDrives);
+    //     theDrives.forEach((drive: any, index: number) => {
+    //       console.log(drive.mountpoints[0], "b4");
+    //       if (typeof drive?.mountpoints[0] !== "undefined") {
+    //         drives.push(drive.mountpoints[0].path);
+    //       }
+    //     });
+    //     console.log(drives);
+    //     //send drive information to frontend
+    //     mainWindow.webContents.send("backEndMsg", drives);
+    //   } catch (error) {
+    //     console.log(error);
+    //   }
+    // };
     const getDrives = async () => {
-      let drives: any = [];
-      const drivelist = require("drivelist");
-      const theDrives = await drivelist.list();
-      try {
-        console.log(theDrives);
-        theDrives.forEach((drive: any, index: number) => {
-          console.log(drive.mountpoints[0], "b4");
-          if (typeof drive?.mountpoints[0] !== "undefined") {
-            drives.push(drive.mountpoints[0].path);
-          }
+      // let drives = [];
+      // const drivelist = require("drivelist");
+      // const theDrives = await drivelist.list();
+      // console.log(theDrives);
+      // theDrives.forEach((drive, index) => {
+      //     console.log("mountpoints: ", drive.mountpoints[0]);
+      //     if (typeof drive?.mountpoints[0] !== "undefined") {
+      //         drives.push(drive.mountpoints[0].path);
+      //     }
+      // });
+      // console.log('available drives: ', drives);
+      // //send drive information to frontend
+      // mainWindow.webContents.send("backEndMsg", drives);
+
+      nodeDiskInfo
+        .getDiskInfo()
+        .then((disks: any) => {
+          console.log("ASYNC results", disks);
+          console.log(typeof disks);
+          let arrayFrom = Object.values(disks);
+          let drivesArray: any = [];
+          arrayFrom.forEach((theDrive: any) => {
+            drivesArray.push(theDrive?._mounted + slash);
+          });
+          // console.log(arrayFrom[0]?._mounted + slash)
+          console.log(drivesArray, "drives");
+          mainWindow.webContents.send("backEndMsg", drivesArray);
+        })
+        .catch((reason: any) => {
+          console.error(reason);
         });
-        console.log(drives);
-        //send drive information to frontend
-        mainWindow.webContents.send("backEndMsg", drives);
-      } catch (error) {
-        console.log(error);
-      }
     };
     // run the getDrives function
     getDrives();
   });
   //set directory route from frontend
   ipcMain.on("setDirectory", (theEvent, initialDirectory) => {
+    mainWindow.webContents.send("ok", "setDirectory route success");
     const homeDir = require("os").homedir();
     let desktopDir = "";
     let dirContentsArray = [];
@@ -95,16 +211,16 @@ async function createWindow() {
       try {
         let isDir: boolean;
         let theString: string;
-        console.log(
-          initialDirectory + slash + dirContents[theFile],
-          "concat check"
-        );
+        // console.log(
+        //   initialDirectory + slash + dirContents[theFile],
+        //   "concat check"
+        // );
         if (
           statSync(
             initialDirectory + slash + dirContents[theFile]
           )?.isDirectory()
         ) {
-          console.log("its a directory");
+          // console.log("its a directory");
           isDir = true;
         } else {
           isDir = false;
@@ -169,6 +285,8 @@ async function createWindow() {
   //     join(__dirname, '../../index.html')
   // );
 }
+
+
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

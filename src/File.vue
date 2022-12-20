@@ -1,8 +1,8 @@
 <template>
   <main>
     <div class="card mb-4 shadow-lg border border-secondary bg-dark text-light">
-      <button id="outerButton" @click="selectTheFile" style="">
-        <img
+      <button id="outerButton" @click="selectTheFile(projectName)" style="">
+        <!-- <img
           v-if="file?.isDirectory"
           class="card-img-top"
           src="./assets/folder1.png"
@@ -13,10 +13,10 @@
           class="card-img-top"
           src="./assets/psd.png"
           alt="File Image"
-        />
+        /> -->
         <div>
           <p id="fileNameDisplay" style="color: white">
-            {{file?.filename}}shmerrrrr
+            {{ projectName }}
           </p>
 
           <button
@@ -35,11 +35,20 @@
 </template>
 
 <script setup>
-defineProps({file: {
-      type: Object
-    }})
+defineProps({projectName: {
+      type: String
+    },
+    show: {
+      type: Boolean
+  },
+  projectName: {
+    type: String
+  }
+  })
 const theEmit = defineEmits(['fileSelected'])
-const selectTheFile = () => {
+const selectTheFile = (projectName) => {
+
+  alert(projectName + ' file project')
   theEmit('fileSelected')
 }
 // const letsgo = () => { alert('daisy');

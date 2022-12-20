@@ -1,107 +1,115 @@
 <template>
-  <div id="app">
+  <div @drop="dropEvent" id="app">
     <div class="container">
       <div class="text-center">
         <br />
         <br />
         <h1 class="text-white">Psd Explorer</h1>
         <br />
-        <h3 class="text-primary">
-          <span class="text-white"> Current Path:</span>
-          {{ currentDirectoryName?.includes('\\') || currentDirectoryName?.includes('/') ? currentDirectoryName : currentDirectoryName + '\\'  }}
-        </h3>
-      </div>
-      <br />
-      <div id="buttonDiv">
-        <button class="bg-dark text-white buttonStyle" @click="upTheTree">
-          <!-- <img style="" src="./assets/arrow.png" /> -->
-          <div style="">↸</div>
-        </button>
-        <button
-          v-if="!isLinux"
-          class="bg-dark text-white buttonStyle"
-          @click="toDesktop">
-          Desktop
-        </button>
-        <div class="break"></div>
-        <button
-          class="btn bg-dark text-light buttonStyle"
-          v-for="(drive, i) in drivesRef"
-          :key="i"
-          @click="navigateToDrive(drivesRef[i])">
-          {{ drive }}
-        </button>
-        <!-- <button id="buttonStyle" @click="sendEvent">Test</button> -->
-        <br />
-      </div>
-      <br /><br />
-      <div class="row" v-if="files.length > 0">
-        <div class="col-md-3" v-for="(file, i) in files" :key="i">
-          <File :file="file" @fileSelected="selected(file, files)" />
-        </div>
-      </div>
+
+      <CreateProject v-if="toggleCreateProject "></CreateProject>
+   <!-- <div style="color: white">{{ projectName }}</div>    -->
+  <!-- <div style="color: white">{{ arrayOfLabels.length > 0 ? arrayOfLabels : null}}</div>  -->
+
+  <!-- <div style="color: white" v-for="label in arrayOfLabels" :key="label">{{label}}</div> -->
+  <div style="color: white">{{label}}</div>
+   
+      <File v-if="show && !toggleCreateProject" :projectName="projectName" @fileSelected="selected(projectName)" />
+
+</div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUpdated } from "vue";
 import File from "./File.vue";
-const { ipcRenderer } = window.require('electron');
-let files = ref([]);
-let currentDirectoryName = ref("");
-let drivesRef = ref();
-let desktopRef = ref();
-let osRef = ref();
+import CreateProject from './CreateProject.vue'
+const { ipcRenderer } = window.require("electron");
+let file = ref();
 const os = require("os");
 const isMac = os.platform() === "darwin";
 const isWindows = os.platform() === "win32";
 const isLinux = os.platform() === "linux";
+const dropFiles = ref({})
+const toggleCreateProject = ref(false);
+const arrayOfLabels = ref([])
+const projectName = ref()
+const show = ref(false);
 
-//set new directory and send to backend
-const setNewDirectory = (newDirectory) => {
-  // console.log("current directory: ", newDirectory);
-  //send setDirectory to backend
-  ipcRenderer.send("setDirectory", newDirectory);
-  // console.log("setDirectory event");
-  //receive directory contents and info from backend
-  //quick fix for console.log event
-  let i=0;
-  ipcRenderer.on("receiveDirectoryContents", (theEvent, directoryInfo) => {
-    if(i<1){
-    console.log("directory: ", directoryInfo);
-    let { currentDirectoryContents, currentDirectory, desktop } = directoryInfo;
+const dropEvent = async (e) => {
+  dropFiles.value = e.dataTransfer.files;
+  console.log(e.dataTransfer.files, 'files to transfer from RootComponent.vue line 66')
 
-    //filter all results that are not directories or .psd files. this is string logic and could be done with mimetypes from backend
-    currentDirectoryContents = currentDirectoryContents.filter(item => item.filename.includes('.psd') || item.isDirectory
-    )
-    //below .value assignments are for use in template as {{files}}, {{currentDirectoryName}}
-    //set files value to currentDirectoryContents
-    files.value = currentDirectoryContents;
-    currentDirectoryName.value = currentDirectory;
-    //set if detected OS has a desktop
-    desktopRef.value = desktop;
+  let newOne = Object.values(e.dataTransfer.files);
+   console.log(newOne[0], '-- the filename RootComponent line 69')
+
+  const dropFileObject = {
+    modified: newOne[0].lastModified,
+    name: newOne[0].name,
+    path: newOne[0].path,
+    type: newOne[0].type
     }
-    i++;
-  });
 
-};
+  // ipcRenderer.send("transfer", JSON.stringify(newOne[0]))
+  ipcRenderer.send("transfer", dropFileObject)
 
-//get available disk drives
-const getDrivesEvent = () => {
-  ipcRenderer.send("getDrives", JSON.stringify(files));
-};
+}
+
+ipcRenderer.on('fileManager', ()=>{ipcRenderer.send('openFileManager')})
+ipcRenderer.on('fileManagerOpen', (a,theFilePath)=> {alert(theFilePath + ' <-- file to be imported');
+
+if(!isLinux){
+let stringPlay = theFilePath.split("\\");
+let length = stringPlay[stringPlay.length -1];
+console.log(length);
+
+ ipcRenderer.send("makeProject", length)}
+
+ if(isLinux){
+  let stringPlay = theFilePath.split("/");
+let length = stringPlay[stringPlay.length -1];
+ipcRenderer.send("makeProject", length)
+ }
+})
+
+ipcRenderer.on('duplicateWarning', ()=> {alert('There is already a project with that name')})
+
+ipcRenderer.on('navigateToProject', (a,b)=> {
+  toggleCreateProject.value = false
+  show.value = true;
+  projectName.value = b;
+})
+ipcRenderer.on('allProjects', (a,b) => {
+  let theProjects = JSON.parse(b); console.log(theProjects);
+  console.log(typeof(theProjects))
+let arrayPlease = Object.values(theProjects)
+console.log(arrayPlease[0].label)
+
+arrayPlease.forEach((theLabel)=>{
+  arrayOfLabels.value.push(theLabel)
+})
+
+  })
+
+onUpdated(()=>{
+  ipcRenderer.send('getProjectFolders');})
+
 //onMounted function. returns OS type and gets available drives.
 onMounted(() => {
-  console.log("Operating system is: ", isLinux ? "linux" : isWindows ? "windows" : isMac ? "mac" : null)
-  getDrivesEvent();
-  ipcRenderer.on("os", (a, b) => {
-    console.log(b);
-    osRef.value = b;
-  });
-  //set initial directory to current working directory
-  setNewDirectory(process.cwd());
-});
+  ipcRenderer.send('getProjectFolders');
+
+  console.log(
+    "Operating system is: ",
+    isLinux ? "linux" : isWindows ? "windows" : isMac ? "mac" : null
+  );
+}
+);
+
+ipcRenderer.on ('createNewProject', (a,b)=>{
+  console.log('create new project!')
+  toggleCreateProject.value = true;
+})
 
 //recieve new directory information from backend
 ipcRenderer.on("newDirectory", (e, arg, a) => {
@@ -113,62 +121,11 @@ ipcRenderer.on("newDirectory", (e, arg, a) => {
   } else setNewDirectory(arg.toString());
 });
 
-//receive drives from backend
-ipcRenderer.on("backEndMsg", (e, arg, a) => {
-  console.log("drives", arg);
-  drivesRef.value = arg;
-});
-
-//onclick function from App.vue <template> --> <Files> component
 const selected = (e) => {
-  let slash;
-  isLinux ? (slash = "\/") : (slash = "\\");
-const path = currentDirectoryName.value + slash + e.filename
-  let stats = {name: e.filename, isDirectory: e.isDirectory, path: path}
-  console.log("selected item: ", stats)
-
-  let i=0;
-  // let bread=files.value; console.log(bread)
-  // console.log("file selected: ", e.filename)
-  const newDirectoryString = currentDirectoryName.value + slash + e.filename;
-  files.value.forEach((file) => {
-    //  console.log(file.filename); console.log(e.filename);
-    if (file.filename == e.filename) {
-
-      if (file.isDirectory == true) {
-        // console.log("file matched: ", file);
-
-        // console.log(newDirectoryString);
-        setNewDirectory(newDirectoryString);
-      }
-      //below else statement is where the conversion functionality will execute once a .psd file is clicked.
-      else {
-          // <--  P o i n t   o f   E n t r y
-        alert("Hi there! " + newDirectoryString)}
-    }
-  })
-  ;
-};
-//navigate up the directory tree
-const upTheTree = () => {
-  console.log(currentDirectoryName.value, "up the tree");
-  ipcRenderer.send("upTheTree", currentDirectoryName.value);
-};
-//navigate to desktop
-//No logic required as the button only displays if desktop is available
-//(v-if <button> in App.vue template)
-const toDesktop = () => {
-  setNewDirectory(desktopRef.value);
-};
-//navigate to another of the available disk drives
-const navigateToDrive = (theDrive) => {
-  console.log(theDrive);
-//Can't currently test drive navigation on ubunutu
-//likely the same '/' replacement used in isLinux, line 116
-  theDrive == "C:\\" ? setNewDirectory("") : setNewDirectory(theDrive);
-};
+  show.value=true;
+  alert(e + ' --> selected function, RootComponent')
+}
 </script>
-
 
 <style>
 body {
@@ -182,9 +139,10 @@ body {
   color: white;
 }
 .buttonStyle {
+  word-wrap: break-word;
   width: 20%;
   font-size: 3vw;
-  font-weight: 500;
+  font-weight: 450;
   justify-content: center;
   font-family: "Segoe UI";
   padding: 10px;

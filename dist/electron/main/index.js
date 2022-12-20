@@ -2,19 +2,17 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const path_1 = require("path");
 const electron_1 = require("electron");
-const original_fs_1 = require("original-fs");
 const path = require("path");
 const { statSync } = require("fs");
 const os = require("os");
 const fs = require("fs");
-const nodeDiskInfo = require("node-disk-info");
+const nodeDiskInfo = require('node-disk-info');
 const isMac = os.platform() === "darwin";
 const isWindows = os.platform() === "win32";
 const isLinux = os.platform() === "linux";
 let nonLinux = "\\";
 let linux = "/";
 let slash;
-const { dialog } = require('electron');
 //path string concatenation check for linux systems
 !isLinux ? (slash = nonLinux) : (slash = linux);
 //log the os to the backend
@@ -24,7 +22,7 @@ const { dialog } = require('electron');
 // );
 const isDev = process.env.npm_lifecycle_event === "app:dev" ? true : false;
 let win;
-console.log("main.ts loaded");
+console.log('test!!!!!!!');
 async function createWindow() {
     // Create the browser window.
     const mainWindow = new electron_1.BrowserWindow({
@@ -36,86 +34,7 @@ async function createWindow() {
             contextIsolation: false,
         },
     });
-    let projectFolderArray = [];
-    console.log(process.cwd(), ' <-- current directory');
-    const getProjects = (b) => {
-        //does projectFolder exist?
-        if (!fs.existsSync("projectsFolder")) {
-            //if not, create it
-            fs.mkdirSync("projectsFolder");
-        }
-        //if it does exist
-        if (fs.existsSync('projectsFolder')) {
-            //if a parameter was passed to getProjects, and the folder for that parameter doesn't exist
-            if (b && !(0, original_fs_1.existsSync)(`projectsFolder/${b}`)) 
-            //create it
-            {
-                fs.mkdirSync(`projectsFolder/${b}`);
-            }
-            //if not, notify user that there is a duplicate 
-            else {
-                mainWindow.webContents.send('duplicateWarning');
-            }
-            //read contents of projectsFolder
-            let theContents = fs.readdirSync("projectsFolder");
-            let menuArray = [];
-            //for each item in the contents
-            theContents.forEach((item, b) => {
-                console.log(item, b);
-                //turn it into a menu item
-                let innerObject = {
-                    label: item,
-                    click() {
-                        console.log("hello from" + item + 'project');
-                        mainWindow.webContents.send('navigateToProject', item);
-                    }
-                };
-                console.log(innerObject);
-                menuArray.push(innerObject);
-            });
-            projectFolderArray = menuArray;
-            mainWindow.webContents.send('allProjects', JSON.stringify(menuArray));
-        }
-        const template = [
-            {
-                label: 'File',
-                submenu: [
-                    {
-                        label: 'New Project',
-                        click() {
-                            console.log("hello from file menu");
-                            mainWindow.webContents.send('createNewProject');
-                        }
-                    },
-                    {
-                        label: 'Open',
-                        click() {
-                            console.log("open file manager");
-                            mainWindow.webContents.send('fileManager');
-                        }
-                    },
-                    ...projectFolderArray
-                ]
-            },
-            //  ...thing
-        ];
-        const menu = electron_1.Menu.buildFromTemplate(template);
-        electron_1.Menu.setApplicationMenu(menu);
-    };
-    getProjects();
-    electron_1.ipcMain.on('openFileManager', () => {
-        console.log('mergerrrrrrr');
-        dialog.showOpenDialog({ properties: ['openFile'] }).then((e) => {
-            if (e.filePaths[0].length) {
-                console.log(e.filePaths[0]);
-                mainWindow.webContents.send('fileManagerOpen', e.filePaths[0]);
-            }
-            else {
-                console.log('no length, cancelled');
-            }
-        });
-    });
-    electron_1.ipcMain.on('makeProject', (a, b) => { getProjects(b); });
+    electron_1.ipcMain.on('transfer', (a, b) => { console.log(b); mainWindow.webContents.send('ok'); });
     electron_1.ipcMain.on("getDrives", (a, b) => {
         // const getDrives = async () => {
         //   let drives: any = [];
@@ -150,18 +69,17 @@ async function createWindow() {
             // console.log('available drives: ', drives);
             // //send drive information to frontend
             // mainWindow.webContents.send("backEndMsg", drives);
-            nodeDiskInfo
-                .getDiskInfo()
+            nodeDiskInfo.getDiskInfo()
                 .then((disks) => {
-                console.log("ASYNC results", disks);
-                console.log(typeof disks);
+                console.log('ASYNC results', disks);
+                console.log(typeof (disks));
                 let arrayFrom = Object.values(disks);
                 let drivesArray = [];
                 arrayFrom.forEach((theDrive) => {
                     drivesArray.push(theDrive?._mounted + slash);
                 });
                 // console.log(arrayFrom[0]?._mounted + slash)
-                console.log(drivesArray, "drives");
+                console.log(drivesArray, 'drives');
                 mainWindow.webContents.send("backEndMsg", drivesArray);
             })
                 .catch((reason) => {
@@ -173,7 +91,7 @@ async function createWindow() {
     });
     //set directory route from frontend
     electron_1.ipcMain.on("setDirectory", (theEvent, initialDirectory) => {
-        mainWindow.webContents.send("ok", "setDirectory route success");
+        mainWindow.webContents.send('ok', 'bob');
         const homeDir = require("os").homedir();
         let desktopDir = "";
         let dirContentsArray = [];
@@ -203,12 +121,9 @@ async function createWindow() {
             try {
                 let isDir;
                 let theString;
-                // console.log(
-                //   initialDirectory + slash + dirContents[theFile],
-                //   "concat check"
-                // );
+                console.log(initialDirectory + slash + dirContents[theFile], "concat check");
                 if (statSync(initialDirectory + slash + dirContents[theFile])?.isDirectory()) {
-                    // console.log("its a directory");
+                    console.log("its a directory");
                     isDir = true;
                 }
                 else {
@@ -291,4 +206,4 @@ electron_1.app.on("window-all-closed", () => {
         electron_1.app.quit();
     }
 });
-//# sourceMappingURL=main.js.map
+//# sourceMappingURL=index.js.map

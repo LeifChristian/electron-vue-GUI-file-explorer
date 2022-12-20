@@ -1,23 +1,22 @@
 "use strict";
 var path = require("path");
 var electron = require("electron");
+var originalFs = require("original-fs");
 require("path");
 const { statSync } = require("fs");
 const os = require("os");
 const fs = require("fs");
-const isMac = os.platform() === "darwin";
-const isWindows = os.platform() === "win32";
+const nodeDiskInfo = require("node-disk-info");
+os.platform() === "darwin";
+os.platform() === "win32";
 const isLinux = os.platform() === "linux";
-require("electron-reloader")(module);
 let nonLinux = "\\";
 let linux = "/";
 let slash;
+const { dialog } = require("electron");
 !isLinux ? slash = nonLinux : slash = linux;
-console.log(
-  "Operating system is:",
-  isLinux ? "Linux" : isMac ? "Mac" : isWindows ? "Windows" : ""
-);
-const isDev = {}.npm_lifecycle_event === "vite" ? true : false;
+const isDev = {}.npm_lifecycle_event === "app:dev" ? true : false;
+console.log("main.ts loaded");
 async function createWindow() {
   const mainWindow = new electron.BrowserWindow({
     width: 800,
@@ -28,30 +27,98 @@ async function createWindow() {
       contextIsolation: false
     }
   });
-  electron.ipcMain.on("getDrives", (a, b) => {
-    console.log("message from frontend:", JSON.parse(b));
-    const getDrives = async () => {
-      let drives = [];
-      const drivelist = require("drivelist");
-      const theDrives = await drivelist.list();
-      try {
-        console.log(theDrives);
-        theDrives.forEach((drive, index) => {
-          console.log(drive.mountpoints[0], "b4");
-          if (typeof (drive == null ? void 0 : drive.mountpoints[0]) !== "undefined") {
-            drives.push(drive.mountpoints[0].path);
-          }
-        });
-        console.log(drives);
-        mainWindow.webContents.send("backEndMsg", drives);
-      } catch (error) {
-        console.log(error);
+  let projectFolderArray = [];
+  console.log(process.cwd(), " <-- current directory");
+  const getProjects = (b) => {
+    if (!fs.existsSync("projectsFolder")) {
+      fs.mkdirSync("projectsFolder");
+    }
+    if (fs.existsSync(
+      "projectsFolder"
+    )) {
+      if (b && !originalFs.existsSync(`projectsFolder/${b}`)) {
+        fs.mkdirSync(`projectsFolder/${b}`);
+      } else {
+        mainWindow.webContents.send("duplicateWarning");
       }
+      let theContents = fs.readdirSync("projectsFolder");
+      let menuArray = [];
+      theContents.forEach((item, b2) => {
+        console.log(item, b2);
+        let innerObject = {
+          label: item,
+          click() {
+            console.log("hello from" + item + "project");
+            mainWindow.webContents.send("navigateToProject", item);
+          }
+        };
+        console.log(innerObject);
+        menuArray.push(innerObject);
+      });
+      projectFolderArray = menuArray;
+      mainWindow.webContents.send("allProjects", JSON.stringify(menuArray));
+    }
+    const template = [
+      {
+        label: "File",
+        submenu: [
+          {
+            label: "New Project",
+            click() {
+              console.log("hello from file menu");
+              mainWindow.webContents.send("createNewProject");
+            }
+          },
+          {
+            label: "Open",
+            click() {
+              console.log("open file manager");
+              mainWindow.webContents.send("fileManager");
+            }
+          },
+          ...projectFolderArray
+        ]
+      }
+    ];
+    const menu = electron.Menu.buildFromTemplate(template);
+    electron.Menu.setApplicationMenu(menu);
+  };
+  getProjects();
+  electron.ipcMain.on("openFileManager", () => {
+    console.log("mergerrrrrrr");
+    dialog.showOpenDialog({ properties: ["openFile"] }).then((e) => {
+      if (e.filePaths[0].length) {
+        console.log(e.filePaths[0]);
+        mainWindow.webContents.send("fileManagerOpen", e.filePaths[0]);
+      } else {
+        console.log("no length, cancelled");
+      }
+    });
+  });
+  electron.ipcMain.on("makeProject", (a, b) => {
+    getProjects(b);
+  });
+  electron.ipcMain.on("getDrives", (a, b) => {
+    const getDrives = async () => {
+      nodeDiskInfo.getDiskInfo().then((disks) => {
+        console.log("ASYNC results", disks);
+        console.log(typeof disks);
+        let arrayFrom = Object.values(disks);
+        let drivesArray = [];
+        arrayFrom.forEach((theDrive) => {
+          drivesArray.push((theDrive == null ? void 0 : theDrive._mounted) + slash);
+        });
+        console.log(drivesArray, "drives");
+        mainWindow.webContents.send("backEndMsg", drivesArray);
+      }).catch((reason) => {
+        console.error(reason);
+      });
     };
     getDrives();
   });
   electron.ipcMain.on("setDirectory", (theEvent, initialDirectory) => {
     var _a;
+    mainWindow.webContents.send("ok", "setDirectory route success");
     const homeDir = require("os").homedir();
     let desktopDir = "";
     let dirContentsArray = [];
@@ -75,14 +142,9 @@ async function createWindow() {
       try {
         let isDir;
         let theString;
-        console.log(
-          initialDirectory + slash + dirContents[theFile],
-          "concat check"
-        );
         if ((_a = statSync(
           initialDirectory + slash + dirContents[theFile]
         )) == null ? void 0 : _a.isDirectory()) {
-          console.log("its a directory");
           isDir = true;
         } else {
           isDir = false;
