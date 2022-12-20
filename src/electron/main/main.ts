@@ -25,6 +25,9 @@ let win: any;
 
 console.log("main.ts loaded");
 
+window.addEventListener('will-resize', (e)=>{e.preventDefault();
+})
+
 async function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -36,6 +39,8 @@ async function createWindow() {
       contextIsolation: false,
     },
   });
+
+  mainWindow.resizable = false;
 
   ipcMain.on('transfer', (a,b,c)=>{console.log(b, '<-- the file to be transferred', c, " <-- the project/folder name"); 
     mainWindow.webContents.send('ok', b, c)

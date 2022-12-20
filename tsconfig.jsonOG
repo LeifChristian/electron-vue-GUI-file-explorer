@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "useDefineForClassFields": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "strict": true,
+    "jsx": "preserve",
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "lib": ["es5", "es6", "esnext", "dom", "dom.iterable"],
+    "skipLibCheck": true,
+    "outDir": "dist/electron",
+    "types": ["vite/client"]
+  },
+  "include": ["src/electron/**/*"],
+  "references": [{
+    "path": "./tsconfig.node.json"
+  }]
+}

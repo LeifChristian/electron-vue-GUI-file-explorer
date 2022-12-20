@@ -37,7 +37,7 @@ async function createWindow() {
         },
     });
     electron_1.ipcMain.on('transfer', (a, b, c) => {
-        console.log(b, c, 'b and c');
+        console.log(b, '<-- the file to be transferred', c, " <-- the project/folder name");
         mainWindow.webContents.send('ok', b, c);
         console.log(process.cwd());
     });

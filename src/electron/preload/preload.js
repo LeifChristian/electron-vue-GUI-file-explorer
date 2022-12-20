@@ -1,8 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 // All of the Node.js APIs are available in the preload process.
 // It has the same sandbox as a Chrome extension.
-exports.default = window.addEventListener('DOMContentLoaded', () => {
+export default window.addEventListener('DOMContentLoaded', () => {
     const replaceText = (selector, text) => {
         const element = document.getElementById(selector);
         if (element)
