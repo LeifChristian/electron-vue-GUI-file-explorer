@@ -36,6 +36,11 @@ async function createWindow() {
             contextIsolation: false,
         },
     });
+    electron_1.ipcMain.on('transfer', (a, b, c) => {
+        console.log(b, c, 'b and c');
+        mainWindow.webContents.send('ok', b, c);
+        console.log(process.cwd());
+    });
     let projectFolderArray = [];
     console.log(process.cwd(), ' <-- current directory');
     const getProjects = (b) => {
@@ -76,6 +81,35 @@ async function createWindow() {
             projectFolderArray = menuArray;
             mainWindow.webContents.send('allProjects', JSON.stringify(menuArray));
         }
+        let thing = [{
+                label: 'View',
+                submenu: [
+                    {
+                        role: 'reload'
+                    },
+                    {
+                        role: 'toggledevtools'
+                    },
+                    {
+                        type: 'separator'
+                    },
+                    {
+                        role: 'resetzoom'
+                    },
+                    {
+                        role: 'zoomin'
+                    },
+                    {
+                        role: 'zoomout'
+                    },
+                    {
+                        type: 'separator'
+                    },
+                    {
+                        role: 'togglefullscreen'
+                    }
+                ]
+            },];
         const template = [
             {
                 label: 'File',
@@ -97,7 +131,7 @@ async function createWindow() {
                     ...projectFolderArray
                 ]
             },
-            //  ...thing
+            ...thing
         ];
         const menu = electron_1.Menu.buildFromTemplate(template);
         electron_1.Menu.setApplicationMenu(menu);
@@ -106,7 +140,7 @@ async function createWindow() {
     electron_1.ipcMain.on('openFileManager', () => {
         console.log('mergerrrrrrr');
         dialog.showOpenDialog({ properties: ['openFile'] }).then((e) => {
-            if (e.filePaths[0].length) {
+            if (e?.filePaths[0]?.length) {
                 console.log(e.filePaths[0]);
                 mainWindow.webContents.send('fileManagerOpen', e.filePaths[0]);
             }

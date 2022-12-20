@@ -1,5 +1,5 @@
 <template>
-  <div @drop="dropEvent" id="app">
+  <div id="app">
     <div class="container">
       <div class="text-center">
         <br />
@@ -37,24 +37,23 @@ const arrayOfLabels = ref([])
 const projectName = ref()
 const show = ref(false);
 
-const dropEvent = async (e) => {
-  dropFiles.value = e.dataTransfer.files;
-  console.log(e.dataTransfer.files, 'files to transfer from RootComponent.vue line 66')
+// const dropEvent = async (e) => {
+//   dropFiles.value = e.dataTransfer.files;
+//   console.log(e.dataTransfer.files, 'files to transfer from RootComponent.vue line 66')
 
-  let newOne = Object.values(e.dataTransfer.files);
-   console.log(newOne[0], '-- the filename RootComponent line 69')
+//   let newOne = Object.values(e.dataTransfer.files);
+//    console.log(newOne[0], '-- the filename RootComponent line 69')
 
-  const dropFileObject = {
-    modified: newOne[0].lastModified,
-    name: newOne[0].name,
-    path: newOne[0].path,
-    type: newOne[0].type
-    }
+//   const dropFileObject = {
+//     modified: newOne[0].lastModified,
+//     name: newOne[0].name,
+//     path: newOne[0].path,
+//     type: newOne[0].type
+//     }
 
-  // ipcRenderer.send("transfer", JSON.stringify(newOne[0]))
-  ipcRenderer.send("transfer", dropFileObject)
-
-}
+//   // ipcRenderer.send("transfer", JSON.stringify(newOne[0]))
+//   ipcRenderer.send("transfer", dropFileObject)
+// }
 
 ipcRenderer.on('fileManager', ()=>{ipcRenderer.send('openFileManager')})
 ipcRenderer.on('fileManagerOpen', (a,theFilePath)=> {alert(theFilePath + ' <-- file to be imported');

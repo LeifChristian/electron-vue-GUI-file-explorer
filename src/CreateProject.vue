@@ -6,6 +6,8 @@ Create a Project <br> <br>
 <button @click="submit(message)">
     Submit
 </button>
+
+
     </div>
 </template>
 
@@ -25,6 +27,8 @@ ipcRenderer.send("makeProject", theProject)
 
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
+
+
 
 </style>

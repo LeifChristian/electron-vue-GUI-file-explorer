@@ -16,7 +16,7 @@
         /> -->
         <div>
           <p id="fileNameDisplay" style="color: white">
-            {{ projectName }}
+            {{ projectName }}{{setName(projectName)}}
           </p>
 
           <button
@@ -31,10 +31,14 @@
         </div>
       </button>
     </div>
+    <div @drop="dropEvent" class="dropZone"></div>
   </main>
 </template>
 
 <script setup>
+import { ref } from 'vue';
+const { ipcRenderer } = window.require("electron");
+const thing = ref()
 defineProps({projectName: {
       type: String
     },
@@ -46,11 +50,37 @@ defineProps({projectName: {
   }
   })
 const theEmit = defineEmits(['fileSelected'])
-const selectTheFile = (projectName) => {
 
-  alert(projectName + ' file project')
+const setName = (a) => {
+
+  thing.value = a;
+  console.log(a);
+}
+const selectTheFile = (projectName) => {
   theEmit('fileSelected')
 }
+
+const dropEvent = async (e) => {
+  console.log(thing.value)
+  // dropFiles.value = e.dataTransfer.files;
+  console.log(e.dataTransfer.files)
+
+  let newOne = Object.values(e.dataTransfer.files);
+   console.log(newOne[0], '-- the filename')
+
+  const dropFileObject = {
+    modified: newOne[0].lastModified,
+    name: newOne[0].name,
+    path: newOne[0].path,
+    type: newOne[0].type
+    }
+
+  // ipcRenderer.send("transfer", JSON.stringify(newOne[0]))
+ ipcRenderer.send("transfer", dropFileObject, thing.value)
+}
+
+ipcRenderer.on('ok', (a,b)=>{alert('okeydokey'); console.log(b)})
+
 // const letsgo = () => { alert('daisy');
 // return 'hi'
 // }
@@ -60,6 +90,12 @@ const selectTheFile = (projectName) => {
 #outerButton {
   background: none;
   border: none;
+}
+.dropZone {
+
+  width: 100%;
+  height: 50vh;
+  border: 2px solid white
 }
 
 #outerButton img:hover {

@@ -37,6 +37,12 @@ async function createWindow() {
     },
   });
 
+  ipcMain.on('transfer', (a,b,c)=>{console.log(b, '<-- the file to be transferred', c, " <-- the project/folder name"); 
+    mainWindow.webContents.send('ok', b, c)
+    console.log(process.cwd())
+  
+  })
+
  let projectFolderArray:any = [];
 console.log(process.cwd(), ' <-- current directory')
 
@@ -77,6 +83,38 @@ projectFolderArray = menuArray;
 mainWindow.webContents.send('allProjects', JSON.stringify(menuArray))
 }
 
+
+let thing = [ {
+  label: 'View',
+  submenu: [
+     {
+        role: 'reload'
+     },
+     {
+        role: 'toggledevtools'
+     },
+     {
+        type: 'separator'
+     },
+     {
+        role: 'resetzoom'
+     },
+     {
+        role: 'zoomin'
+     },
+     {
+        role: 'zoomout'
+     },
+     {
+        type: 'separator'
+     },
+     {
+        role: 'togglefullscreen'
+     }
+  ]
+},]
+
+
   const template:any = [
     {
        label: 'File',
@@ -101,7 +139,7 @@ mainWindow.webContents.send('allProjects', JSON.stringify(menuArray))
        ]
     },
     
-  //  ...thing
+    ...thing
     
   ]
   const menu = Menu.buildFromTemplate(template)
@@ -112,7 +150,7 @@ getProjects();
 ipcMain.on('openFileManager', ()=>{console.log('mergerrrrrrr');
 dialog.showOpenDialog({ properties: ['openFile'] }).then((e)=>{
 
-  if(e.filePaths[0].length){
+  if(e?.filePaths[0]?.length){
   console.log(e.filePaths[0]);
   mainWindow.webContents.send('fileManagerOpen', e.filePaths[0])
 

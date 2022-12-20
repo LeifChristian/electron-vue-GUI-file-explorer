@@ -27,6 +27,11 @@ async function createWindow() {
       contextIsolation: false
     }
   });
+  electron.ipcMain.on("transfer", (a, b, c) => {
+    console.log(b, c, "b and c");
+    mainWindow.webContents.send("ok", b, c);
+    console.log(process.cwd());
+  });
   let projectFolderArray = [];
   console.log(process.cwd(), " <-- current directory");
   const getProjects = (b) => {
@@ -58,6 +63,35 @@ async function createWindow() {
       projectFolderArray = menuArray;
       mainWindow.webContents.send("allProjects", JSON.stringify(menuArray));
     }
+    let thing = [{
+      label: "View",
+      submenu: [
+        {
+          role: "reload"
+        },
+        {
+          role: "toggledevtools"
+        },
+        {
+          type: "separator"
+        },
+        {
+          role: "resetzoom"
+        },
+        {
+          role: "zoomin"
+        },
+        {
+          role: "zoomout"
+        },
+        {
+          type: "separator"
+        },
+        {
+          role: "togglefullscreen"
+        }
+      ]
+    }];
     const template = [
       {
         label: "File",
@@ -78,7 +112,8 @@ async function createWindow() {
           },
           ...projectFolderArray
         ]
-      }
+      },
+      ...thing
     ];
     const menu = electron.Menu.buildFromTemplate(template);
     electron.Menu.setApplicationMenu(menu);
@@ -87,7 +122,8 @@ async function createWindow() {
   electron.ipcMain.on("openFileManager", () => {
     console.log("mergerrrrrrr");
     dialog.showOpenDialog({ properties: ["openFile"] }).then((e) => {
-      if (e.filePaths[0].length) {
+      var _a;
+      if ((_a = e == null ? void 0 : e.filePaths[0]) == null ? void 0 : _a.length) {
         console.log(e.filePaths[0]);
         mainWindow.webContents.send("fileManagerOpen", e.filePaths[0]);
       } else {
