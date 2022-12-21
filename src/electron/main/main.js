@@ -6,12 +6,11 @@ require("path");
 require("fs");
 const os = require("os");
 const fs = require("fs");
-require("node-disk-info");
 os.platform() === "darwin";
 os.platform() === "win32";
 os.platform() === "linux";
 const { dialog } = require("electron");
-const isDev = {}.npm_lifecycle_event === "app:dev" ? true : false;
+const isDev = {}.npm_lifecycle_event === "vite" ? true : false;
 console.log("main.ts loaded");
 async function createWindow() {
   const mainWindow = new electron.BrowserWindow({

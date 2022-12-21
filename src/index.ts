@@ -30,6 +30,8 @@ var mime = require("mime-types");
 //       console.log(finalPath);
 //       console.log(finalPath, "<-- final path from index.ts line 32");
 //       // get image mime type
+
+
 //       const mimeType = mime.lookup(ogFilePath);
 //       //disallow drag/drop if not a psd file
 //       if (mimeType !== "image/vnd.adobe.photoshop") {

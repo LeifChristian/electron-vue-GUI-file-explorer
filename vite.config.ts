@@ -3,10 +3,11 @@ import { rmSync } from "fs";
 import vue from "@vitejs/plugin-vue";
 import electron from "vite-plugin-electron";
 import pkg from "./package.json";
-
 rmSync("dist-electron", { recursive: true, force: true });
 const sourcemap = !!process.env.VSCODE_DEBUG;
-const isBuild = process.argv.slice(2).includes("build");
+// const isBuild = process.argv.slice(2).includes("build");
+const isBuild = true
+
 
 // https://vitejs.dev/config/
 

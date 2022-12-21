@@ -7,7 +7,7 @@ const path = require("path");
 const { statSync } = require("fs");
 const os = require("os");
 const fs = require("fs");
-const nodeDiskInfo = require("node-disk-info");
+// const nodeDiskInfo = require("node-disk-info");
 const isMac = os.platform() === "darwin";
 const isWindows = os.platform() === "win32";
 const isLinux = os.platform() === "linux";
@@ -22,11 +22,11 @@ const { dialog } = require('electron');
 //   "Operating system is:",
 //   isLinux ? "Linux" : isMac ? "Mac" : isWindows ? "Windows" : ""
 // );
-const isDev = process.env.npm_lifecycle_event === "app:dev" ? true : false;
+const isDev = process.env.npm_lifecycle_event === "vite" ? true : false;
 let win;
 console.log("main.ts loaded");
 async function createWindow() {
-    // Create the browser window.
+    // Create the browser window
     const mainWindow = new electron_1.BrowserWindow({
         width: 800,
         height: 600,
