@@ -1,33 +1,28 @@
 import { join } from "path";
-import { app, BrowserWindow, shell, ipcMain } from "electron";
+import { app, BrowserWindow, shell, ipcMain, ipcRenderer } from "electron";
 const path = require("path");
 const { statSync } = require("fs");
 const os = require("os");
 const fs = require("fs");
+const nodeDiskInfo = require("node-disk-info");
 const isMac = os.platform() === "darwin";
 const isWindows = os.platform() === "win32";
 const isLinux = os.platform() === "linux";
-require('electron-reloader')(module)
 let nonLinux = "\\";
 let linux = "/";
 let slash: string;
 //path string concatenation check for linux systems
 !isLinux ? (slash = nonLinux) : (slash = linux);
-
-//log the os on the backend
-console.log(
-  "Operating system is:",
-  isLinux ? "Linux" : isMac ? "Mac" : isWindows ? "Windows" : ""
-);
-
-const isDev = process.env.npm_lifecycle_event === "vite" ? true : false;
-
+//log the os to the backend
+// console.log(
+//   "Operating system is:",
+//   isLinux ? "Linux" : isMac ? "Mac" : isWindows ? "Windows" : ""
+// );
+ const isDev = process.env.npm_lifecycle_event === "vite" ? true : false;
+// const isDev = true;
 let win: any;
 
-// mainWindow?.webContents.send(
-//     "os",
-//     isLinux ? "linux" : isMac ? "mac" : isWindows ? "windows" : null
-//   );
+console.log("main.ts loaded");
 
 async function createWindow() {
   // Create the browser window.
@@ -41,32 +36,70 @@ async function createWindow() {
     },
   });
 
+  ipcMain.on("transfer", (a, b: any) => {
+    console.log(b);
+    mainWindow.webContents.send("ok");
+  });
+
   ipcMain.on("getDrives", (a, b) => {
-    console.log("message from frontend:", JSON.parse(b));
+    // const getDrives = async () => {
+    //   let drives: any = [];
+    //   const drivelist = require("drivelist");
+    //   const theDrives = await drivelist.list();
+    //   try {
+    //     console.log(theDrives);
+    //     theDrives.forEach((drive: any, index: number) => {
+    //       console.log(drive.mountpoints[0], "b4");
+    //       if (typeof drive?.mountpoints[0] !== "undefined") {
+    //         drives.push(drive.mountpoints[0].path);
+    //       }
+    //     });
+    //     console.log(drives);
+    //     //send drive information to frontend
+    //     mainWindow.webContents.send("backEndMsg", drives);
+    //   } catch (error) {
+    //     console.log(error);
+    //   }
+    // };
     const getDrives = async () => {
-      let drives: any = [];
-      const drivelist = require("drivelist");
-      const theDrives = await drivelist.list();
-      try {
-        console.log(theDrives);
-        theDrives.forEach((drive: any, index: number) => {
-          console.log(drive.mountpoints[0], "b4");
-          if (typeof drive?.mountpoints[0] !== "undefined") {
-            drives.push(drive.mountpoints[0].path);
-          }
+      // let drives = [];
+      // const drivelist = require("drivelist");
+      // const theDrives = await drivelist.list();
+      // console.log(theDrives);
+      // theDrives.forEach((drive, index) => {
+      //     console.log("mountpoints: ", drive.mountpoints[0]);
+      //     if (typeof drive?.mountpoints[0] !== "undefined") {
+      //         drives.push(drive.mountpoints[0].path);
+      //     }
+      // });
+      // console.log('available drives: ', drives);
+      // //send drive information to frontend
+      // mainWindow.webContents.send("backEndMsg", drives);
+
+      nodeDiskInfo
+        .getDiskInfo()
+        .then((disks: any) => {
+          console.log("ASYNC results", disks);
+          console.log(typeof disks);
+          let arrayFrom = Object.values(disks);
+          let drivesArray: any = [];
+          arrayFrom.forEach((theDrive: any) => {
+            drivesArray.push(theDrive?._mounted + slash);
+          });
+          // console.log(arrayFrom[0]?._mounted + slash)
+          console.log(drivesArray, "drives");
+          mainWindow.webContents.send("backEndMsg", drivesArray);
+        })
+        .catch((reason: any) => {
+          console.error(reason);
         });
-        console.log(drives);
-        //send drive information to frontend
-        mainWindow.webContents.send("backEndMsg", drives);
-      } catch (error) {
-        console.log(error);
-      }
     };
     // run the getDrives function
     getDrives();
   });
   //set directory route from frontend
   ipcMain.on("setDirectory", (theEvent, initialDirectory) => {
+    mainWindow.webContents.send("ok", "setDirectory route success");
     const homeDir = require("os").homedir();
     let desktopDir = "";
     let dirContentsArray = [];

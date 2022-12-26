@@ -6,7 +6,7 @@ const path = require("path");
 const { statSync } = require("fs");
 const os = require("os");
 const fs = require("fs");
-const nodeDiskInfo = require("node-disk-info");
+const nodeDiskInfo = require('node-disk-info');
 const isMac = os.platform() === "darwin";
 const isWindows = os.platform() === "win32";
 const isLinux = os.platform() === "linux";
@@ -20,10 +20,9 @@ let slash;
 //   "Operating system is:",
 //   isLinux ? "Linux" : isMac ? "Mac" : isWindows ? "Windows" : ""
 // );
-const isDev = process.env.npm_lifecycle_event === "vite" ? true : false;
-// const isDev = true;
+const isDev = process.env.npm_lifecycle_event === "app:dev" ? true : false;
 let win;
-console.log("main.ts loaded");
+console.log('test!!!!!!!');
 async function createWindow() {
     // Create the browser window.
     const mainWindow = new electron_1.BrowserWindow({
@@ -35,10 +34,7 @@ async function createWindow() {
             contextIsolation: false,
         },
     });
-    electron_1.ipcMain.on("transfer", (a, b) => {
-        console.log(b);
-        mainWindow.webContents.send("ok");
-    });
+    electron_1.ipcMain.on('transfer', (a, b) => { console.log(b); mainWindow.webContents.send('ok'); });
     electron_1.ipcMain.on("getDrives", (a, b) => {
         // const getDrives = async () => {
         //   let drives: any = [];
@@ -73,18 +69,17 @@ async function createWindow() {
             // console.log('available drives: ', drives);
             // //send drive information to frontend
             // mainWindow.webContents.send("backEndMsg", drives);
-            nodeDiskInfo
-                .getDiskInfo()
+            nodeDiskInfo.getDiskInfo()
                 .then((disks) => {
-                console.log("ASYNC results", disks);
-                console.log(typeof disks);
+                console.log('ASYNC results', disks);
+                console.log(typeof (disks));
                 let arrayFrom = Object.values(disks);
                 let drivesArray = [];
                 arrayFrom.forEach((theDrive) => {
                     drivesArray.push(theDrive?._mounted + slash);
                 });
                 // console.log(arrayFrom[0]?._mounted + slash)
-                console.log(drivesArray, "drives");
+                console.log(drivesArray, 'drives');
                 mainWindow.webContents.send("backEndMsg", drivesArray);
             })
                 .catch((reason) => {
@@ -96,7 +91,7 @@ async function createWindow() {
     });
     //set directory route from frontend
     electron_1.ipcMain.on("setDirectory", (theEvent, initialDirectory) => {
-        mainWindow.webContents.send("ok", "setDirectory route success");
+        mainWindow.webContents.send('ok', 'bob');
         const homeDir = require("os").homedir();
         let desktopDir = "";
         let dirContentsArray = [];
@@ -211,4 +206,4 @@ electron_1.app.on("window-all-closed", () => {
         electron_1.app.quit();
     }
 });
-//# sourceMappingURL=main.js.map
+//# sourceMappingURL=index.js.map

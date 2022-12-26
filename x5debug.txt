@@ -1,0 +1,8 @@
+comes from:
+electron - main - main.js
+also index.js
+and index.ts
+
+lol
+
+is compiled into 'dist/assets' js minify file

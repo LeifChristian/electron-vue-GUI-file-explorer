@@ -16,7 +16,7 @@
         />
         <div>
           <p id="fileNameDisplay" style="color: white">
-            {{file?.filename}}shmerrrrr
+            {{file?.filename}}
           </p>
 
           <button

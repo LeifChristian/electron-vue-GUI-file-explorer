@@ -5,19 +5,16 @@ require("path");
 const { statSync } = require("fs");
 const os = require("os");
 const fs = require("fs");
-const isMac = os.platform() === "darwin";
-const isWindows = os.platform() === "win32";
+const nodeDiskInfo = require("node-disk-info");
+os.platform() === "darwin";
+os.platform() === "win32";
 const isLinux = os.platform() === "linux";
-require("electron-reloader")(module);
 let nonLinux = "\\";
 let linux = "/";
 let slash;
 !isLinux ? slash = nonLinux : slash = linux;
-console.log(
-  "Operating system is:",
-  isLinux ? "Linux" : isMac ? "Mac" : isWindows ? "Windows" : ""
-);
 const isDev = {}.npm_lifecycle_event === "vite" ? true : false;
+console.log("main.ts loaded");
 async function createWindow() {
   const mainWindow = new electron.BrowserWindow({
     width: 800,
@@ -28,30 +25,31 @@ async function createWindow() {
       contextIsolation: false
     }
   });
+  electron.ipcMain.on("transfer", (a, b) => {
+    console.log(b);
+    mainWindow.webContents.send("ok");
+  });
   electron.ipcMain.on("getDrives", (a, b) => {
-    console.log("message from frontend:", JSON.parse(b));
     const getDrives = async () => {
-      let drives = [];
-      const drivelist = require("drivelist");
-      const theDrives = await drivelist.list();
-      try {
-        console.log(theDrives);
-        theDrives.forEach((drive, index) => {
-          console.log(drive.mountpoints[0], "b4");
-          if (typeof (drive == null ? void 0 : drive.mountpoints[0]) !== "undefined") {
-            drives.push(drive.mountpoints[0].path);
-          }
+      nodeDiskInfo.getDiskInfo().then((disks) => {
+        console.log("ASYNC results", disks);
+        console.log(typeof disks);
+        let arrayFrom = Object.values(disks);
+        let drivesArray = [];
+        arrayFrom.forEach((theDrive) => {
+          drivesArray.push((theDrive == null ? void 0 : theDrive._mounted) + slash);
         });
-        console.log(drives);
-        mainWindow.webContents.send("backEndMsg", drives);
-      } catch (error) {
-        console.log(error);
-      }
+        console.log(drivesArray, "drives");
+        mainWindow.webContents.send("backEndMsg", drivesArray);
+      }).catch((reason) => {
+        console.error(reason);
+      });
     };
     getDrives();
   });
   electron.ipcMain.on("setDirectory", (theEvent, initialDirectory) => {
     var _a;
+    mainWindow.webContents.send("ok", "setDirectory route success");
     const homeDir = require("os").homedir();
     let desktopDir = "";
     let dirContentsArray = [];
