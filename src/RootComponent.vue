@@ -103,7 +103,7 @@ const setNewDirectory = (newDirectory) => {
 
       //filter all results that are not directories or .psd files. this is string logic and could be done with mimetypes from backend
       currentDirectoryContents = currentDirectoryContents.filter(
-        (item) => item.filename.includes(".psd") || item.isDirectory
+        (item) => item.filename.includes(".") || item.isDirectory
       );
       //below .value assignments are for use in template as {{files}}, {{currentDirectoryName}}
       //set files value to currentDirectoryContents
@@ -178,6 +178,7 @@ const selected = (e) => {
       else {
         // <--  P o i n t   o f   E n t r y
         alert("Hi there! " + newPathString);
+        ipcRenderer.send('open', newPathString)
       }
     }
   });

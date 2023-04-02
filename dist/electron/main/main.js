@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const path_1 = require("path");
 const electron_1 = require("electron");
+const { shell } = require('electron');
 const path = require("path");
 const { statSync } = require("fs");
 const os = require("os");
@@ -93,6 +94,14 @@ async function createWindow() {
         };
         // run the getDrives function
         getDrives();
+    });
+    electron_1.ipcMain.on('open', (event, filename) => {
+        // construct the absolute path to the file
+        const filePath = path.join(__dirname, filename);
+        // console.log(filePath, 'PAFF!!!')
+        console.log(filename, "PAFF!!!!");
+        // use the shell module to open the file with the associated program
+        shell.openPath(filename);
     });
     //set directory route from frontend
     electron_1.ipcMain.on("setDirectory", (theEvent, initialDirectory) => {

@@ -34,7 +34,7 @@ async function createWindow() {
             contextIsolation: false,
         },
     });
-    electron_1.ipcMain.on('transfer', (a, b) => { console.log(b); mainWindow.webContents.send('ok'); });
+    electron_1.ipcMain.on('transfer', (a, b) => { console.log(b, 'bunghole'); mainWindow.webContents.send('ok'); });
     electron_1.ipcMain.on("getDrives", (a, b) => {
         // const getDrives = async () => {
         //   let drives: any = [];

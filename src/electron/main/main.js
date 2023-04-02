@@ -1,7 +1,8 @@
 "use strict";
-var path = require("path");
+var path$1 = require("path");
 var electron = require("electron");
-require("path");
+const { shell } = require("electron");
+const path = require("path");
 const { statSync } = require("fs");
 const os = require("os");
 const fs = require("fs");
@@ -20,7 +21,7 @@ async function createWindow() {
     width: 800,
     height: 600,
     webPreferences: {
-      preload: path.join(__dirname, "../preload/preload.js"),
+      preload: path$1.join(__dirname, "../preload/preload.js"),
       nodeIntegration: true,
       contextIsolation: false
     }
@@ -46,6 +47,11 @@ async function createWindow() {
       });
     };
     getDrives();
+  });
+  electron.ipcMain.on("open", (event, filename) => {
+    path.join(__dirname, filename);
+    console.log(filename, "PAFF!!!!");
+    shell.openPath(filename);
   });
   electron.ipcMain.on("setDirectory", (theEvent, initialDirectory) => {
     var _a;
@@ -125,7 +131,7 @@ async function createWindow() {
     mainWindow.loadURL("http://localhost:3000");
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, "../../index.html"));
+    mainWindow.loadFile(path$1.join(__dirname, "../../index.html"));
   }
 }
 electron.app.whenReady().then(() => {

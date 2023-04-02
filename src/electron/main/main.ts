@@ -1,5 +1,6 @@
 import { join } from "path";
-import { app, BrowserWindow, shell, ipcMain, ipcRenderer } from "electron";
+import { app, BrowserWindow, ipcMain, ipcRenderer } from "electron";
+const { shell } = require('electron');
 const path = require("path");
 const { statSync } = require("fs");
 const os = require("os");
@@ -97,6 +98,17 @@ async function createWindow() {
     // run the getDrives function
     getDrives();
   });
+
+  ipcMain.on('open', (event, filename) => {
+    // construct the absolute path to the file
+    const filePath = path.join(__dirname, filename)
+
+    // console.log(filePath, 'PAFF!!!')
+    console.log(filename, "PAFF!!!!")
+  
+    // use the shell module to open the file with the associated program
+    shell.openPath(filename)
+  })
   //set directory route from frontend
   ipcMain.on("setDirectory", (theEvent, initialDirectory) => {
     mainWindow.webContents.send("ok", "setDirectory route success");

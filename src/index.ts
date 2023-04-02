@@ -1,6 +1,7 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import { createApp } from "vue";
 import RootComponent from "./RootComponent.vue";
+const { shell } = require('electron')
 const os = require("os");
 const fs = require("fs");
 const isMac = os.platform() === "darwin";
@@ -32,10 +33,10 @@ document.addEventListener("drop", (event) => {
       // get image mime type
       const mimeType = mime.lookup(ogFilePath);
       //disallow drag/drop if not a psd file
-      if (mimeType !== "image/vnd.adobe.photoshop") {
-        alert("not a psd");
-        return;
-      }
+      // if (mimeType !== "image/vnd.adobe.photoshop") {
+      //   alert("not a psd");
+      //   return;
+      // }
 
       //check path and copy file to directory
       try {
