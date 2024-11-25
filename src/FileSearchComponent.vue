@@ -1,6 +1,6 @@
 <!-- FileSearch.vue -->
 <template>
-    <div class="w-full mb-6">
+    <div class="w-50 flex m-auto align-center space-around mb-6">
       <div class="d-flex gap-3">
         <input
           type="text"
