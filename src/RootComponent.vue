@@ -121,9 +121,14 @@ const setNewDirectory = (newDirectory) => {
 };
 
 //get available disk drives
+// const getDrivesEvent = () => {
+//   ipcRenderer.send("getDrives", JSON.stringify(files));
+// };
+
 const getDrivesEvent = () => {
-  ipcRenderer.send("getDrives", JSON.stringify(files));
+  ipcRenderer.send("getDrives");  // Remove the JSON.stringify(files)
 };
+
 //onMounted function. returns OS type and gets available drives.
 
 onMounted(() => {
@@ -207,12 +212,7 @@ const navigateToDrive = (theDrive) => {
 };
 </script>
 
-<style>
-body {
-  background: black;
-  text-align: center;
-}
-</style>
+
 
 <style scoped>
 #links a {
@@ -246,6 +246,7 @@ body {
   flex-wrap: wrap;
   padding: 2px;
   text-align: center;
+  margin-bottom: 2rem;
 }
 
 .break {
@@ -257,63 +258,83 @@ body {
   background: dodgerblue;
 }
 
-/* New grid layout styles */
+/* Updated grid layout styles */
 .files-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.5rem;
   padding: 1rem;
+  background: rgba(30, 30, 30, 0.5);
+  border-radius: 8px;
   max-width: 1800px;
   margin: 0 auto;
 }
 
 .file-item {
-  width: 100%;
-  aspect-ratio: 1;
+  background: rgba(40, 40, 40, 0.5);
+  border-radius: 4px;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  aspect-ratio: 1/1;
+  max-width: 120px;
+  margin: 0 auto;
 }
 
-/* Responsive container width */
+.file-item:hover {
+  background: rgba(60, 60, 60, 0.8);
+}
+
 .container {
   width: 100%;
   max-width: 1800px;
   margin: 0 auto;
   padding: 0 1rem;
+  background: black
 }
 
 /* Media queries for different screen sizes */
 @media (min-width: 1400px) {
   .files-container {
-    grid-template-columns: repeat(8, 1fr); /* 8 items per row on very large screens */
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    max-width: 1400px;
   }
 }
 
 @media (max-width: 1399px) and (min-width: 1200px) {
   .files-container {
-    grid-template-columns: repeat(6, 1fr); /* 6 items per row on large screens */
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   }
 }
 
 @media (max-width: 1199px) and (min-width: 992px) {
   .files-container {
-    grid-template-columns: repeat(5, 1fr); /* 5 items per row on medium-large screens */
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   }
 }
 
 @media (max-width: 991px) and (min-width: 768px) {
   .files-container {
-    grid-template-columns: repeat(4, 1fr); /* 4 items per row on medium screens */
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   }
 }
 
 @media (max-width: 767px) and (min-width: 576px) {
   .files-container {
-    grid-template-columns: repeat(3, 1fr); /* 3 items per row on small screens */
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
   }
 }
 
 @media (max-width: 575px) {
   .files-container {
-    grid-template-columns: repeat(2, 1fr); /* 2 items per row on very small screens */
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+  
+  .buttonStyle {
+    font-size: 4vw;
   }
 }
 </style>

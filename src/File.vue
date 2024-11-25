@@ -1,80 +1,99 @@
 <template>
-  <main>
-    <div class="card mb-4 shadow-lg border border-secondary bg-dark text-light">
-      <button id="outerButton" @click="selectTheFile" style="">
-        <img
-          v-if="file?.isDirectory"
-          class="card-img-top"
-          src="./assets/folder1.png"
-          alt="Folder Image"
-        />
-        <img
-          v-else
-          class="card-img-top"
-          src="./assets/psd.png"
-          alt="File Image"
-        />
-        <div>
-          <p id="fileNameDisplay" style="color: white">
-            {{file?.filename}}
-          </p>
-
-          <button
-            id="psd"
-            v-if="!file?.isDirectory"
-            style="margin: auto; width: 100%"
-            class="btn btn-primary"
-          >
-            Select
-          </button>
-          <!-- <div style="display: none">{{letsgo()}}</div> -->
-        </div>
-      </button>
+  <div 
+    class="file-card"
+    @click="selectTheFile"
+    :class="{ 'is-directory': file?.isDirectory }"
+  >
+    <div class="icon-container">
+      <img
+        v-if="file?.isDirectory"
+        class="icon"
+        src="./assets/folder1.png"
+        alt="Folder"
+      />
+      <img
+        v-else
+        class="icon"
+        src="./assets/psd.png"
+        alt="PSD File"
+      />
     </div>
-  </main>
+    <div class="filename">{{ file?.filename }}</div>
+  </div>
 </template>
 
 <script setup>
-defineProps({file: {
-      type: Object
-    }})
-const theEmit = defineEmits(['fileSelected'])
+defineProps({
+  file: {
+    type: Object
+  }
+});
+
+const theEmit = defineEmits(['fileSelected']);
 const selectTheFile = () => {
-  theEmit('fileSelected')
-}
-// const letsgo = () => { alert('daisy');
-// return 'hi'
-// }
+  theEmit('fileSelected');
+};
 </script>
 
 <style scoped>
-#outerButton {
-  background: none;
-  border: none;
+.file-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.15s ease-in-out;
+  height: 100%;
+  user-select: none;
 }
 
-#outerButton img:hover {
-  background: dodgerblue;
+.file-card:hover {
+  background-color: rgba(30, 144, 255, 0.1);
 }
 
-#fakeButton {
-  margin: auto;
+.file-card:active {
+  background-color: rgba(30, 144, 255, 0.2);
+}
+
+.icon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  width: 48px;
+  height: 48px;
+}
+
+.icon {
   width: 100%;
-  opacity: 0;
+  height: 100%;
+  object-fit: contain;
 }
 
-#fileNameDisplay {
-  margin: auto;
-  width: 70%;
+.filename {
+  font-size: 0.85rem;
+  color: #fff;
   text-align: center;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  padding: 0 0.25rem;
+  line-height: 1.2;
+  max-height: 2.4em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
-#psd {
-  display: none;
-  opacity: 0;
+/* Optional: Different styling for directories */
+.is-directory:hover {
+  background-color: rgba(30, 144, 255, 0.15);
 }
 
-#psd:hover {
-  opacity: 1;
+/* Remove button styling */
+button {
+  all: unset;
 }
 </style>

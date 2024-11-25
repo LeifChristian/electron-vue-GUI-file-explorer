@@ -1,75 +1,61 @@
-import { join } from "path";
-import { app, BrowserWindow, ipcMain } from "electron";
-const { shell } = require('electron');
+"use strict";
+const path$1 = require("path");
+const electron = require("electron");
+const { shell } = require("electron");
 const path = require("path");
 const { statSync } = require("fs");
 const os = require("os");
 const fs = require("fs");
 const nodeDiskInfo = require("node-disk-info");
-
-// Platform detection
 const isMac = process.platform === "darwin";
-const isWindows = process.platform === "win32";
+process.platform === "win32";
 const isLinux = process.platform === "linux";
 const slash = isLinux ? "/" : "\\";
-
-// Environment detection
 const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
-
 console.log("main.ts loaded");
-
 function createWindow() {
-  // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  const mainWindow = new electron.BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
-      preload: join(__dirname, "../preload/preload.js"),
+      preload: path$1.join(__dirname, "../preload/preload.js"),
       nodeIntegration: true,
-      contextIsolation: false,
-    },
+      contextIsolation: false
+    }
   });
-
-  // Load the appropriate URL
   if (VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(VITE_DEV_SERVER_URL);
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(join(__dirname, "../../index.html"));
+    mainWindow.loadFile(path$1.join(__dirname, "../../index.html"));
   }
-
-  // IPC handlers
-  ipcMain.on("transfer", (a, b: any) => {
+  electron.ipcMain.on("transfer", (a, b) => {
     console.log(b);
     mainWindow.webContents.send("ok");
   });
-
-  ipcMain.on("getDrives", async () => {  // Removed unused parameters
+  electron.ipcMain.on("getDrives", async () => {
     try {
       const disks = await nodeDiskInfo.getDiskInfo();
-      const drivesArray = Object.values(disks).map((drive: any) => 
-        `${drive._mounted}${slash}`
+      const drivesArray = Object.values(disks).map(
+        (drive) => `${drive._mounted}${slash}`
       );
       console.log(drivesArray, "drives");
       mainWindow.webContents.send("backEndMsg", drivesArray);
     } catch (error) {
       console.error(error);
-      mainWindow.webContents.send("backEndMsg", []);  // Send empty array on error
+      mainWindow.webContents.send("backEndMsg", []);
     }
   });
-
-  ipcMain.on('open', (event, filename) => {
+  electron.ipcMain.on("open", (event, filename) => {
     console.log(filename, "PAFF!!!!");
     shell.openPath(filename);
   });
-
-  ipcMain.on("setDirectory", (theEvent, initialDirectory) => {
+  electron.ipcMain.on("setDirectory", (theEvent, initialDirectory) => {
     mainWindow.webContents.send("ok", "setDirectory route success");
     const homeDir = os.homedir();
     const desktopDir = !isLinux ? `${homeDir}\\Desktop` : "";
     let dirContents;
     let dirContentsArray = [];
-
     try {
       if (initialDirectory.length > 0) {
         dirContents = fs.readdirSync(initialDirectory);
@@ -77,8 +63,7 @@ function createWindow() {
         dirContents = fs.readdirSync("C:\\");
         initialDirectory = "C:\\";
       }
-
-      dirContentsArray = dirContents.reduce((acc: any[], file: string) => {
+      dirContentsArray = dirContents.reduce((acc, file) => {
         try {
           const fullPath = path.join(initialDirectory, file);
           const isDir = statSync(fullPath).isDirectory();
@@ -88,57 +73,47 @@ function createWindow() {
         }
         return acc;
       }, []);
-
       mainWindow.webContents.send("receiveDirectoryContents", {
         currentDirectory: initialDirectory,
         currentDirectoryContents: dirContentsArray,
-        desktop: desktopDir,
+        desktop: desktopDir
       });
     } catch (error) {
       console.error(error);
       mainWindow.webContents.send("receiveDirectoryContents", {
         currentDirectory: initialDirectory,
         currentDirectoryContents: [],
-        desktop: desktopDir,
+        desktop: desktopDir
       });
     }
   });
-
-  ipcMain.on("upTheTree", (a, b) => {
+  electron.ipcMain.on("upTheTree", (a, b) => {
     const pathParts = b.split(slash);
-    
-    if ((!isLinux && pathParts.length >= 2) || (isLinux && pathParts.length >= 3)) {
+    if (!isLinux && pathParts.length >= 2 || isLinux && pathParts.length >= 3) {
       const newPath = pathParts.slice(0, -1).join(slash);
       mainWindow.webContents.send("newDirectory", newPath);
     }
   });
-
   mainWindow.webContents.on("did-finish-load", () => {
     mainWindow.webContents.send(
       "main-process-message",
-      new Date().toLocaleString()
+      (/* @__PURE__ */ new Date()).toLocaleString()
     );
   });
 }
-
-// App lifecycle handlers
-app.whenReady().then(() => {
+electron.app.whenReady().then(() => {
   createWindow();
-
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
+  electron.app.on("activate", () => {
+    if (electron.BrowserWindow.getAllWindows().length === 0) {
       createWindow();
     }
   });
 });
-
-app.on("window-all-closed", () => {
+electron.app.on("window-all-closed", () => {
   if (!isMac) {
-    app.quit();
+    electron.app.quit();
   }
 });
-
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (require('electron-squirrel-startup')) {
-  app.quit();
+if (require("electron-squirrel-startup")) {
+  electron.app.quit();
 }
