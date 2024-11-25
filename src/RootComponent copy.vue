@@ -18,16 +18,17 @@
       <br />
 
       <FileSearch 
-        :files="files"
-        @search="(filtered) => files = filtered"
-      />
+  :files="files"
+  @search="(filtered) => files = filtered"
+/>
       <div id="buttonDiv">
         <button class="bg-dark text-white buttonStyle" @click="upTheTree">
-          <div>↸</div>
+          <!-- <img style="" src="./assets/arrow.png" /> -->
+          <div style="">↸</div>
         </button>
         <button
           v-if="!isLinux"
-          class="bg-dark text-white buttonStyle no-wrap"
+          class="bg-dark text-white buttonStyle"
           @click="toDesktop"
         >
           Desktop
@@ -41,11 +42,12 @@
         >
           {{ drive }}
         </button>
+        <!-- <button id="buttonStyle" @click="sendEvent">Test</button> -->
         <br />
       </div>
       <br /><br />
-      <div class="files-container" v-if="files.length > 0">
-        <div v-for="(file, i) in files" :key="i" class="file-item">
+      <div class="row" v-if="files.length > 0">
+        <div class="col-md-3" v-for="(file, i) in files" :key="i">
           <File :file="file" @fileSelected="selected(file, files)" />
         </div>
       </div>
@@ -213,16 +215,16 @@ body {
   text-align: center;
 }
 </style>
-
 <style scoped>
 #links a {
   text-decoration: none;
   color: white;
 }
-
 .buttonStyle {
+  word-wrap: break-word;
   width: 20%;
-  font-size: 2vw;
+  word-wrap: nowrap;
+  font-size: 3vw;
   font-weight: 450;
   justify-content: center;
   font-family: "Segoe UI";
@@ -233,13 +235,6 @@ body {
   border-radius: 0.5rem;
   border: 0.6px solid gray;
 }
-
-.no-wrap {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 #buttonDiv {
   display: flex;
   justify-content: center;
@@ -247,73 +242,11 @@ body {
   padding: 2px;
   text-align: center;
 }
-
 .break {
   flex-basis: 100%;
   height: 0;
 }
-
 .buttonStyle:hover {
   background: dodgerblue;
-}
-
-/* New grid layout styles */
-.files-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-  padding: 1rem;
-  max-width: 1800px;
-  margin: 0 auto;
-}
-
-.file-item {
-  width: 100%;
-  aspect-ratio: 1;
-}
-
-/* Responsive container width */
-.container {
-  width: 100%;
-  max-width: 1800px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-/* Media queries for different screen sizes */
-@media (min-width: 1400px) {
-  .files-container {
-    grid-template-columns: repeat(8, 1fr); /* 8 items per row on very large screens */
-  }
-}
-
-@media (max-width: 1399px) and (min-width: 1200px) {
-  .files-container {
-    grid-template-columns: repeat(6, 1fr); /* 6 items per row on large screens */
-  }
-}
-
-@media (max-width: 1199px) and (min-width: 992px) {
-  .files-container {
-    grid-template-columns: repeat(5, 1fr); /* 5 items per row on medium-large screens */
-  }
-}
-
-@media (max-width: 991px) and (min-width: 768px) {
-  .files-container {
-    grid-template-columns: repeat(4, 1fr); /* 4 items per row on medium screens */
-  }
-}
-
-@media (max-width: 767px) and (min-width: 576px) {
-  .files-container {
-    grid-template-columns: repeat(3, 1fr); /* 3 items per row on small screens */
-  }
-}
-
-@media (max-width: 575px) {
-  .files-container {
-    grid-template-columns: repeat(2, 1fr); /* 2 items per row on very small screens */
-  }
 }
 </style>
