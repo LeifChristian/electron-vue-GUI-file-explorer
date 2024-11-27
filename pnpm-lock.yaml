@@ -23,6 +23,9 @@ importers:
       esbuild:
         specifier: ^0.16.8
         version: 0.16.17
+      lucide-vue-next:
+        specifier: ^0.462.0
+        version: 0.462.0(vue@3.5.13(typescript@4.9.5))
       mime-types:
         specifier: ^2.1.35
         version: 2.1.35
@@ -1097,6 +1100,11 @@ packages:
   lru-cache@6.0.0:
     resolution: {integrity: sha512-Jo6dJ04CmSjuznwJSS3pUeWmd/H0ffTlkXXgwZi+eq1UCmqQwCh+eLsYOYCwY991i2Fah4h1BEMCx4qThGbsiA==}
     engines: {node: '>=10'}
+
+  lucide-vue-next@0.462.0:
+    resolution: {integrity: sha512-3H+GzhWA+qAW29EpJr/vCtPJK209zejoqsy6pCWSC6niPnywQeOA/yxl/WPQ38ODo3h7r0iGjpMKl8g/LS3+JA==}
+    peerDependencies:
+      vue: '>=3.0.1'
 
   magic-string@0.30.13:
     resolution: {integrity: sha512-8rYBO+MsWkgjDSOvLomYnzhdwEG51olQ4zL5KXnNJWV5MNmrb4rTZdrtkhxjnD/QyZUqR/Z/XDsUs/4ej2nx0g==}
@@ -2619,6 +2627,10 @@ snapshots:
   lru-cache@6.0.0:
     dependencies:
       yallist: 4.0.0
+
+  lucide-vue-next@0.462.0(vue@3.5.13(typescript@4.9.5)):
+    dependencies:
+      vue: 3.5.13(typescript@4.9.5)
 
   magic-string@0.30.13:
     dependencies:
