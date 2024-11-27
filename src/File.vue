@@ -5,17 +5,11 @@
     :class="{ 'is-directory': file?.isDirectory }"
   >
     <div class="icon-container">
-      <img
-        v-if="file?.isDirectory"
+      <component 
+        :is="getFileIcon" 
         class="icon"
-        src="./assets/folder1.png"
-        alt="Folder"
-      />
-      <img
-        v-else
-        class="icon"
-        src="./assets/psd.png"
-        alt="PSD File"
+        size="48"
+        stroke-width="1.5"
       />
     </div>
     <div class="filename">{{ file?.filename }}</div>
@@ -23,13 +17,67 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue';
+import { 
+  Folder,
+  FileText,
+  Image,
+  FileVideo,
+  FileAudio,
+  FileCode,
+  FileJson,
+  FileArchive,
+  File as FileIcon
+} from 'lucide-vue-next';
+
+const props = defineProps({
   file: {
     type: Object
   }
 });
 
 const theEmit = defineEmits(['fileSelected']);
+
+const getFileIcon = computed(() => {
+  if (props.file?.isDirectory) return Folder;
+
+  const extension = props.file?.filename.split('.').pop()?.toLowerCase();
+
+  const iconMap = {
+    // Images
+    'jpg': Image, 'jpeg': Image, 'png': Image, 'gif': Image,
+    'svg': Image, 'webp': Image, 'psd': Image,
+
+    // Videos
+    'mp4': FileVideo, 'mov': FileVideo, 'avi': FileVideo,
+    'mkv': FileVideo, 'webm': FileVideo,
+
+    // Audio
+    'mp3': FileAudio, 'wav': FileAudio, 'ogg': FileAudio,
+    'm4a': FileAudio, 'flac': FileAudio,
+
+    // Code
+    'js': FileCode, 'ts': FileCode, 'py': FileCode,
+    'java': FileCode, 'cpp': FileCode, 'html': FileCode,
+    'css': FileCode, 'vue': FileCode, 'jsx': FileCode,
+    'php': FileCode,
+
+    // Config/Data
+    'json': FileJson, 'xml': FileJson, 'yaml': FileJson,
+    'yml': FileJson, 'toml': FileJson,
+
+    // Archives
+    'zip': FileArchive, 'rar': FileArchive, '7z': FileArchive,
+    'tar': FileArchive, 'gz': FileArchive,
+
+    // Documents
+    'txt': FileText, 'md': FileText, 'pdf': FileText,
+    'doc': FileText, 'docx': FileText, 'rtf': FileText
+  };
+
+  return iconMap[extension] || FileIcon;
+});
+
 const selectTheFile = () => {
   theEmit('fileSelected');
 };
@@ -63,12 +111,12 @@ const selectTheFile = () => {
   margin-bottom: 0.5rem;
   width: 48px;
   height: 48px;
+  color: #fff;
 }
 
 .icon {
   width: 100%;
   height: 100%;
-  object-fit: contain;
 }
 
 .filename {
@@ -87,12 +135,10 @@ const selectTheFile = () => {
   -webkit-box-orient: vertical;
 }
 
-/* Optional: Different styling for directories */
 .is-directory:hover {
   background-color: rgba(30, 144, 255, 0.15);
 }
 
-/* Remove button styling */
 button {
   all: unset;
 }

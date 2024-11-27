@@ -37,16 +37,32 @@
   const searchTerm = ref('')
   const searchType = ref('all')
   
+  // const handleSearch = () => {
+  //   console.log(searchTerm.value)
+  //   const filtered = props.files.filter(file => {
+  //     if (searchType.value === 'folders' && !file.isDirectory) return false
+  //     if (searchType.value === 'files' && file.isDirectory) return false
+    
+  //     if(!searchTerm.value.length) return file.filename.toLowerCase()
+  //     return file.filename.toLowerCase().includes(searchTerm.value.toLowerCase())
+  //   })
+    
+  //   emit('search', filtered)
+  // }
+
   const handleSearch = () => {
-    console.log(searchTerm.value)
-    const filtered = props.files.filter(file => {
-      if (searchType.value === 'folders' && !file.isDirectory) return false
-      if (searchType.value === 'files' && file.isDirectory) return false
+  const filtered = props.files.filter(file => {
+    // First check file/folder filter
+    if (searchType.value === 'folders' && !file.isDirectory) return false
+    if (searchType.value === 'files' && file.isDirectory) return false
     
-      if(!searchTerm.value.length) return file.filename.toLowerCase()
-      return file.filename.toLowerCase().includes(searchTerm.value.toLowerCase())
-    })
+    // If search is empty, return all items that passed type filter
+    if (searchTerm.value.length === 0) return true
     
-    emit('search', filtered)
-  }
+    // Otherwise filter by search term
+    return file.filename.toLowerCase().includes(searchTerm.value.toLowerCase())
+  })
+  
+  emit('search', filtered)
+}
   </script>
