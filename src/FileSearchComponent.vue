@@ -36,19 +36,6 @@
   
   const searchTerm = ref('')
   const searchType = ref('all')
-  
-  // const handleSearch = () => {
-  //   console.log(searchTerm.value)
-  //   const filtered = props.files.filter(file => {
-  //     if (searchType.value === 'folders' && !file.isDirectory) return false
-  //     if (searchType.value === 'files' && file.isDirectory) return false
-    
-  //     if(!searchTerm.value.length) return file.filename.toLowerCase()
-  //     return file.filename.toLowerCase().includes(searchTerm.value.toLowerCase())
-  //   })
-    
-  //   emit('search', filtered)
-  // }
 
   const handleSearch = () => {
   const filtered = props.files.filter(file => {
