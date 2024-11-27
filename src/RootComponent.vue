@@ -208,7 +208,7 @@ const selected = (e) => {
       if (file.isDirectory == true) {
         setNewDirectory(newPathString);
       } else {
-        alert("Hi there! " + newPathString);
+        alert("Opening -->" + newPathString);
         ipcRenderer.send('open', newPathString)
       }
     }
