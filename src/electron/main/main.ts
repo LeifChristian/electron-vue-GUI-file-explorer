@@ -1,35 +1,24 @@
 import { join } from "path";
-import { app, BrowserWindow, shell, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
+const { shell } = require('electron');
 const path = require("path");
 const { statSync } = require("fs");
 const os = require("os");
 const fs = require("fs");
-const isMac = os.platform() === "darwin";
-const isWindows = os.platform() === "win32";
-const isLinux = os.platform() === "linux";
-require('electron-reloader')(module)
-let nonLinux = "\\";
-let linux = "/";
-let slash: string;
-//path string concatenation check for linux systems
-!isLinux ? (slash = nonLinux) : (slash = linux);
+const nodeDiskInfo = require("node-disk-info");
 
-//log the os on the backend
-console.log(
-  "Operating system is:",
-  isLinux ? "Linux" : isMac ? "Mac" : isWindows ? "Windows" : ""
-);
+// Platform detection
+const isMac = process.platform === "darwin";
+const isWindows = process.platform === "win32";
+const isLinux = process.platform === "linux";
+const slash = isLinux ? "/" : "\\";
 
-const isDev = process.env.npm_lifecycle_event === "vite" ? true : false;
+// Environment detection
+const VITE_DEV_SERVER_URL = process.env.VITE_DEV_SERVER_URL;
 
-let win: any;
+console.log("main.ts loaded");
 
-// mainWindow?.webContents.send(
-//     "os",
-//     isLinux ? "linux" : isMac ? "mac" : isWindows ? "windows" : null
-//   );
-
-async function createWindow() {
+function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 800,
@@ -41,152 +30,115 @@ async function createWindow() {
     },
   });
 
-  ipcMain.on("getDrives", (a, b) => {
-    console.log("message from frontend:", JSON.parse(b));
-    const getDrives = async () => {
-      let drives: any = [];
-      const drivelist = require("drivelist");
-      const theDrives = await drivelist.list();
-      try {
-        console.log(theDrives);
-        theDrives.forEach((drive: any, index: number) => {
-          console.log(drive.mountpoints[0], "b4");
-          if (typeof drive?.mountpoints[0] !== "undefined") {
-            drives.push(drive.mountpoints[0].path);
-          }
-        });
-        console.log(drives);
-        //send drive information to frontend
-        mainWindow.webContents.send("backEndMsg", drives);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    // run the getDrives function
-    getDrives();
-  });
-  //set directory route from frontend
-  ipcMain.on("setDirectory", (theEvent, initialDirectory) => {
-    const homeDir = require("os").homedir();
-    let desktopDir = "";
-    let dirContentsArray = [];
-    let dirContents: any;
-    console.log("initialDirectory: ", initialDirectory);
-    //if a directory is passed from frontend, read that directory
-    try {
-      if (initialDirectory.length > 0) {
-        dirContents = fs?.readdirSync(initialDirectory);
-      } else {
-        dirContents = fs.readdirSync("C:\\");
-        initialDirectory = "C:\\";
-      }
-      console.log(dirContents, "contents");
-    } catch (error) {}
-    //else we know that it must be root directory
-    //get the home directory
-    //if not linux (desktop should be available on win and mac)
-    // assign desktop directory
-    if (!isLinux) {
-      desktopDir = `${homeDir}\\Desktop`;
-      console.log("desktop directory: ", desktopDir);
-    }
-
-    for (let theFile in dirContents) {
-      try {
-        let isDir: boolean;
-        let theString: string;
-        console.log(
-          initialDirectory + slash + dirContents[theFile],
-          "concat check"
-        );
-        if (
-          statSync(
-            initialDirectory + slash + dirContents[theFile]
-          )?.isDirectory()
-        ) {
-          console.log("its a directory");
-          isDir = true;
-        } else {
-          isDir = false;
-        }
-        dirContentsArray.push({
-          filename: dirContents[theFile],
-          isDirectory: isDir,
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    }
-    //send directory contents of new directory to frontend
-    mainWindow.webContents.send("receiveDirectoryContents", {
-      currentDirectory: initialDirectory,
-      currentDirectoryContents: dirContentsArray,
-      desktop: desktopDir,
-    });
-  });
-
-  //navigate up the directory tree route from frontend
-  ipcMain.on("upTheTree", (a, b) => {
-    // console.log(isLinux, isMac, isWindows,)
-    // console.log(slash)
-    const up = b.split(slash);
-    //split the string by slash variable
-    console.log(up.length, "directory string length");
-    let newup: any;
-    console.log(up.length);
-    //fixed length of string variable by system type.
-    //send newDirectory to frontend
-    if (!isLinux && up.length >= 2) {
-      newup = up.slice(0, up.length - 1).join(slash);
-      console.log(newup, "--new directory");
-      mainWindow.webContents.send("newDirectory", newup);
-    }
-    if (isLinux && up.length >= 3) {
-      newup = up.slice(0, up.length - 1).join(slash);
-      mainWindow.webContents.send("newDirectory", newup);
-    }
-    // else do nothing
-    else return;
-  });
-
-  mainWindow?.webContents.on("did-finish-load", () => {
-    mainWindow?.webContents.send(
-      "main-process-message",
-      new Date().toLocaleString()
-    );
-  });
-
-  // load the index.html of the app.
-  if (isDev) {
-    mainWindow.loadURL("http://localhost:3000"); // Open the DevTools.
+  // Load the appropriate URL
+  if (VITE_DEV_SERVER_URL) {
+    mainWindow.loadURL(VITE_DEV_SERVER_URL);
     mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(join(__dirname, "../../index.html"));
   }
-  // mainWindow.loadURL( //this doesn't work on macOS in build and preview mode
-  //     isDev ?
-  //     'http://localhost:3000' :
-  //     join(__dirname, '../../index.html')
-  // );
+
+  // IPC handlers
+  ipcMain.on("transfer", (a, b: any) => {
+    console.log(b);
+    mainWindow.webContents.send("ok");
+  });
+
+  ipcMain.on("getDrives", async () => {  // Removed unused parameters
+    try {
+      const disks = await nodeDiskInfo.getDiskInfo();
+      const drivesArray = Object.values(disks).map((drive: any) => 
+        `${drive._mounted}${slash}`
+      );
+      console.log(drivesArray, "drives");
+      mainWindow.webContents.send("backEndMsg", drivesArray);
+    } catch (error) {
+      console.error(error);
+      mainWindow.webContents.send("backEndMsg", []);  // Send empty array on error
+    }
+  });
+
+  ipcMain.on('open', (event, filename) => {
+    console.log(filename, "PAFF!!!!");
+    shell.openPath(filename);
+  });
+
+  ipcMain.on("setDirectory", (theEvent, initialDirectory) => {
+    mainWindow.webContents.send("ok", "setDirectory route success");
+    const homeDir = os.homedir();
+    const desktopDir = !isLinux ? `${homeDir}\\Desktop` : "";
+    let dirContents;
+    let dirContentsArray = [];
+
+    try {
+      if (initialDirectory.length > 0) {
+        dirContents = fs.readdirSync(initialDirectory);
+      } else {
+        dirContents = fs.readdirSync("C:\\");
+        initialDirectory = "C:\\";
+      }
+
+      dirContentsArray = dirContents.reduce((acc: any[], file: string) => {
+        try {
+          const fullPath = path.join(initialDirectory, file);
+          const isDir = statSync(fullPath).isDirectory();
+          acc.push({ filename: file, isDirectory: isDir });
+        } catch (error) {
+          console.log(error);
+        }
+        return acc;
+      }, []);
+
+      mainWindow.webContents.send("receiveDirectoryContents", {
+        currentDirectory: initialDirectory,
+        currentDirectoryContents: dirContentsArray,
+        desktop: desktopDir,
+      });
+    } catch (error) {
+      console.error(error);
+      mainWindow.webContents.send("receiveDirectoryContents", {
+        currentDirectory: initialDirectory,
+        currentDirectoryContents: [],
+        desktop: desktopDir,
+      });
+    }
+  });
+
+  ipcMain.on("upTheTree", (a, b) => {
+    const pathParts = b.split(slash);
+    
+    if ((!isLinux && pathParts.length >= 2) || (isLinux && pathParts.length >= 3)) {
+      const newPath = pathParts.slice(0, -1).join(slash);
+      mainWindow.webContents.send("newDirectory", newPath);
+    }
+  });
+
+  mainWindow.webContents.on("did-finish-load", () => {
+    mainWindow.webContents.send(
+      "main-process-message",
+      new Date().toLocaleString()
+    );
+  });
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
+// App lifecycle handlers
 app.whenReady().then(() => {
   createWindow();
-  app.on("activate", function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+
+  app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
   });
 });
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
+  if (!isMac) {
     app.quit();
   }
 });
+
+// Handle creating/removing shortcuts on Windows when installing/uninstalling.
+if (require('electron-squirrel-startup')) {
+  app.quit();
+}

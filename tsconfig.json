@@ -1,21 +1,50 @@
 {
   "compilerOptions": {
-    "target": "esnext",
+    "target": "ESNext",
     "useDefineForClassFields": true,
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
     "strict": true,
     "jsx": "preserve",
     "sourceMap": true,
     "resolveJsonModule": true,
     "isolatedModules": false,
     "esModuleInterop": true,
-    "lib": ["esnext", "dom"],
+    "allowSyntheticDefaultImports": true,
+    "lib": [
+      "ES5",
+      "ES6",
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "skipLibCheck": true,
-    "outDir": "dist/electron"
+    "outDir": "dist/electron",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "types": [
+      "node",
+      "vite/client"
+    ],
+    "allowJs": true,
+    "noEmit": false,
+    "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/electron/**/*"],
+  "include": [
+    "src/electron/**/*",
+    "src/electron/**/*.ts",
+    "src/electron/**/*.d.ts",
+    "src/electron/**/*.tsx",
+    "vite.config.ts"
+  ],
   "references": [{
     "path": "./tsconfig.node.json"
-  }]
+  }],
+  "ts-node": {
+    "compilerOptions": {
+      "module": "CommonJS"
+    }
+  }
 }

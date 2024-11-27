@@ -1,42 +1,53 @@
 <template>
-  <div id="app">
+  <div @drop="dropEvent" id="app">
     <div class="container">
       <div class="text-center">
         <br />
         <br />
-        <h1 class="text-white">Psd Explorer</h1>
+        <h1 class="text-white">File Explorer</h1>
         <br />
         <h3 class="text-primary">
           <span class="text-white"> Current Path:</span>
-          {{ currentDirectoryName?.includes('\\') || currentDirectoryName?.includes('/') ? currentDirectoryName : currentDirectoryName + '\\'  }}
+          {{
+            currentDirectoryName?.includes("\\") || currentDirectoryName?.includes("/")
+              ? currentDirectoryName
+              : currentDirectoryName + "\\"
+          }}
         </h3>
       </div>
       <br />
+
+      <FileSearch 
+  :files="allFiles"
+  @search="handleSearch"
+/>
+
       <div id="buttonDiv">
-        <button class="bg-dark text-white buttonStyle" @click="upTheTree">
-          <!-- <img style="" src="./assets/arrow.png" /> -->
-          <div style="">↸</div>
+        <button class="navigation-button" @click="upTheTree">
+          <ArrowUpCircle class="w-6 h-6" />
         </button>
         <button
           v-if="!isLinux"
-          class="bg-dark text-white buttonStyle"
-          @click="toDesktop">
+          class="navigation-button"
+          @click="toDesktop"
+        >
+          <Monitor class="w-6 h-6 mr-2" />
           Desktop
         </button>
         <div class="break"></div>
         <button
-          class="btn bg-dark text-light buttonStyle"
+          class="navigation-button"
           v-for="(drive, i) in drivesRef"
           :key="i"
-          @click="navigateToDrive(drivesRef[i])">
+          @click="navigateToDrive(drivesRef[i])"
+        >
+          <HardDrive class="w-6 h-6 mr-2" />
           {{ drive }}
         </button>
-        <!-- <button id="buttonStyle" @click="sendEvent">Test</button> -->
-        <br />
       </div>
       <br /><br />
-      <div class="row" v-if="files.length > 0">
-        <div class="col-md-3" v-for="(file, i) in files" :key="i">
+      <div class="files-container" v-if="files.length > 0">
+        <div v-for="(file, i) in files" :key="i" class="file-item">
           <File :file="file" @fileSelected="selected(file, files)" />
         </div>
       </div>
@@ -46,9 +57,24 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { ArrowUpCircle, Monitor, HardDrive } from 'lucide-vue-next';
+import FileSearch from './FileSearchComponent.vue'
 import File from "./File.vue";
-const { ipcRenderer } = window.require('electron');
-let files = ref([]);
+import { 
+  Folder,
+  FileText,
+  Image,
+  FileVideo,
+  FileAudio,
+  FileCode,
+  FileJson,
+  FileArchive,
+  File as FileIcon
+} from 'lucide-vue-next';
+
+const { ipcRenderer } = window.require("electron");
+const allFiles = ref([]); // Add this to store original files
+const files = ref([]); // This will store filtered files
 let currentDirectoryName = ref("");
 let drivesRef = ref();
 let desktopRef = ref();
@@ -57,134 +83,165 @@ const os = require("os");
 const isMac = os.platform() === "darwin";
 const isWindows = os.platform() === "win32";
 const isLinux = os.platform() === "linux";
+const dropFiles = ref({});
 
-//set new directory and send to backend
+const getFileIcon = (file) => {
+  if (file.isDirectory) return Folder;
+
+  const extension = file.filename.split('.').pop()?.toLowerCase();
+
+  const iconMap = {
+    // Images
+    'jpg': Image, 'jpeg': Image, 'png': Image, 'gif': Image,
+    'svg': Image, 'webp': Image, 'psd': Image,
+
+    // Videos
+    'mp4': FileVideo, 'mov': FileVideo, 'avi': FileVideo,
+    'mkv': FileVideo, 'webm': FileVideo,
+
+    // Audio
+    'mp3': FileAudio, 'wav': FileAudio, 'ogg': FileAudio,
+    'm4a': FileAudio, 'flac': FileAudio,
+
+    // Code
+    'js': FileCode, 'ts': FileCode, 'py': FileCode,
+    'java': FileCode, 'cpp': FileCode, 'html': FileCode,
+    'css': FileCode, 'vue': FileCode, 'jsx': FileCode,
+    'php': FileCode,
+
+    // Config/Data
+    'json': FileJson, 'xml': FileJson, 'yaml': FileJson,
+    'yml': FileJson, 'toml': FileJson,
+
+    // Archives
+    'zip': FileArchive, 'rar': FileArchive, '7z': FileArchive,
+    'tar': FileArchive, 'gz': FileArchive,
+
+    // Documents
+    'txt': FileText, 'md': FileText, 'pdf': FileText,
+    'doc': FileText, 'docx': FileText, 'rtf': FileText
+  };
+
+  return iconMap[extension] || FileIcon;
+};
+
+const dropEvent = async (e) => {
+  dropFiles.value = e.dataTransfer.files;
+  let newOne = Object.values(e.dataTransfer.files);
+  const dropFileObject = {
+    modified: newOne[0].lastModified,
+    name: newOne[0].name,
+    path: newOne[0].path,
+    type: newOne[0].type
+  }
+  alert('success! transferred file ' + newOne[0].path + "to project directory")
+  ipcRenderer.send("transfer", dropFileObject)
+}
+
+// const setNewDirectory = (newDirectory) => {
+//   ipcRenderer.send("setDirectory", newDirectory);
+//   let i = 0;
+//   ipcRenderer.on("receiveDirectoryContents", (theEvent, directoryInfo) => {
+//     if (i < 1) {
+//       let { currentDirectoryContents, currentDirectory, desktop } = directoryInfo;
+//       currentDirectoryContents = currentDirectoryContents.filter(
+//         (item) => item.filename.includes(".") || item.isDirectory
+//       );
+//       files.value = currentDirectoryContents;
+//       currentDirectoryName.value = currentDirectory;
+//       desktopRef.value = desktop;
+//     }
+//     i++;
+//   });
+// };
+
+
 const setNewDirectory = (newDirectory) => {
-  // console.log("current directory: ", newDirectory);
-  //send setDirectory to backend
   ipcRenderer.send("setDirectory", newDirectory);
-  // console.log("setDirectory event");
-  //receive directory contents and info from backend
-  //quick fix for console.log event
-  let i=0;
+  let i = 0;
   ipcRenderer.on("receiveDirectoryContents", (theEvent, directoryInfo) => {
-    if(i<1){
-    console.log("directory: ", directoryInfo);
-    let { currentDirectoryContents, currentDirectory, desktop } = directoryInfo;
-
-    //filter all results that are not directories or .psd files. this is string logic and could be done with mimetypes from backend
-    currentDirectoryContents = currentDirectoryContents.filter(item => item.filename.includes('.psd') || item.isDirectory
-    )
-    //below .value assignments are for use in template as {{files}}, {{currentDirectoryName}}
-    //set files value to currentDirectoryContents
-    files.value = currentDirectoryContents;
-    currentDirectoryName.value = currentDirectory;
-    //set if detected OS has a desktop
-    desktopRef.value = desktop;
+    if (i < 1) {
+      let { currentDirectoryContents, currentDirectory, desktop } = directoryInfo;
+      currentDirectoryContents = currentDirectoryContents.filter(
+        (item) => item.filename.includes(".") || item.isDirectory
+      );
+      allFiles.value = currentDirectoryContents; // Store in original list
+      files.value = currentDirectoryContents;    // Display all initially
+      currentDirectoryName.value = currentDirectory;
+      desktopRef.value = desktop;
     }
     i++;
   });
-
 };
 
-//get available disk drives
+const handleSearch = (filtered) => {
+  files.value = filtered;
+};
+
 const getDrivesEvent = () => {
-  ipcRenderer.send("getDrives", JSON.stringify(files));
+  ipcRenderer.send("getDrives");
 };
-//onMounted function. returns OS type and gets available drives.
+
 onMounted(() => {
-  console.log("Operating system is: ", isLinux ? "linux" : isWindows ? "windows" : isMac ? "mac" : null)
+  ipcRenderer.on('ok', (a,b)=>{ console.log(b)})
   getDrivesEvent();
-  ipcRenderer.on("os", (a, b) => {
-    console.log(b);
-    osRef.value = b;
-  });
-  //set initial directory to current working directory
   setNewDirectory(process.cwd());
 });
 
-//recieve new directory information from backend
 ipcRenderer.on("newDirectory", (e, arg, a) => {
-  console.log("newDirectory: ", arg);
-  //assign correct parameter passed when in root directory
-  //Works fine without below logic on any other drive than C:\\
   if (arg.toString() == "C:" || arg.toString() == "c:") {
     setNewDirectory("");
   } else setNewDirectory(arg.toString());
 });
 
-//receive drives from backend
 ipcRenderer.on("backEndMsg", (e, arg, a) => {
-  console.log("drives", arg);
   drivesRef.value = arg;
 });
 
-//onclick function from App.vue <template> --> <Files> component
 const selected = (e) => {
-  let slash;
-  isLinux ? (slash = "\/") : (slash = "\\");
-const path = currentDirectoryName.value + slash + e.filename
-  let stats = {name: e.filename, isDirectory: e.isDirectory, path: path}
-  console.log("selected item: ", stats)
+  let slash = isLinux ? "/" : "\\";
+  const path = currentDirectoryName.value + slash + e.filename;
+  const newPathString = currentDirectoryName.value + slash + e.filename;
 
-  let i=0;
-  // let bread=files.value; console.log(bread)
-  // console.log("file selected: ", e.filename)
-  const newDirectoryString = currentDirectoryName.value + slash + e.filename;
   files.value.forEach((file) => {
-    //  console.log(file.filename); console.log(e.filename);
     if (file.filename == e.filename) {
-
       if (file.isDirectory == true) {
-        // console.log("file matched: ", file);
-
-        // console.log(newDirectoryString);
-        setNewDirectory(newDirectoryString);
+        setNewDirectory(newPathString);
+      } else {
+        alert("Opening -->" + newPathString);
+        ipcRenderer.send('open', newPathString)
       }
-      //below else statement is where the conversion functionality will execute once a .psd file is clicked.
-      else {
-          // <--  P o i n t   o f   E n t r y
-        alert("Hi there! " + newDirectoryString)}
     }
-  })
-  ;
+  });
 };
-//navigate up the directory tree
+
 const upTheTree = () => {
-  console.log(currentDirectoryName.value, "up the tree");
   ipcRenderer.send("upTheTree", currentDirectoryName.value);
 };
-//navigate to desktop
-//No logic required as the button only displays if desktop is available
-//(v-if <button> in App.vue template)
+
 const toDesktop = () => {
   setNewDirectory(desktopRef.value);
 };
-//navigate to another of the available disk drives
+
 const navigateToDrive = (theDrive) => {
-  console.log(theDrive);
-//Can't currently test drive navigation on ubunutu
-//likely the same '/' replacement used in isLinux, line 116
   theDrive == "C:\\" ? setNewDirectory("") : setNewDirectory(theDrive);
 };
 </script>
 
-
-<style>
-body {
-  background: black;
-  text-align: center;
-}
-</style>
 <style scoped>
+body {
+  background: black
+}
+
 #links a {
   text-decoration: none;
   color: white;
 }
+
 .buttonStyle {
   width: 20%;
-  font-size: 3vw;
-  font-weight: 500;
+  font-size: 2vw;
+  font-weight: 450;
   justify-content: center;
   font-family: "Segoe UI";
   padding: 10px;
@@ -194,18 +251,157 @@ body {
   border-radius: 0.5rem;
   border: 0.6px solid gray;
 }
+
+.no-wrap {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 #buttonDiv {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
   padding: 2px;
   text-align: center;
+  margin-bottom: 2rem;
 }
+
 .break {
   flex-basis: 100%;
   height: 0;
 }
+
 .buttonStyle:hover {
   background: dodgerblue;
+}
+
+.files-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.5rem;
+  padding: 1rem;
+  background: rgba(30, 30, 30, 1);
+  border-radius: 8px;
+  max-width: 1800px;
+  margin: 0 auto;
+  min-height: calc(100vh - 300px);
+}
+
+.file-item {
+  background: rgba(40, 40, 40, 0.5);
+  border-radius: 4px;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  aspect-ratio: 1/1;
+  max-width: 120px;
+  margin: 0 auto;
+  min-height: 120px;
+  overflow: visible;
+}
+
+.file-item:hover {
+  background: rgba(60, 60, 60, 0.8);
+}
+
+.container {
+  width: 100%;
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  background: black;
+  min-height: 100vh;
+}
+
+#app {
+  background: black;
+  min-height: 100vh;
+}
+
+.filename {
+  background: rgba(40, 40, 40, 0.5);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: #fff;
+  text-align: center;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  line-height: 1.2;
+  max-height: 2.4em;
+  overflow: visible;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+@media (min-width: 1400px) {
+  .files-container {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    max-width: 1400px;
+  }
+}
+
+@media (max-width: 1399px) and (min-width: 1200px) {
+  .files-container {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+}
+
+@media (max-width: 1199px) and (min-width: 992px) {
+  .files-container {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+}
+
+@media (max-width: 991px) and (min-width: 768px) {
+  .files-container {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+}
+
+@media (max-width: 767px) and (min-width: 576px) {
+  .files-container {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  }
+}
+
+@media (max-width: 575px) {
+  .files-container {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+  
+  .buttonStyle {
+    font-size: 4vw;
+  }
+}
+
+.navigation-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  margin: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(40, 40, 40, 0.5);
+  color: white;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  min-width: 100px;
+  font-size: 1rem;
+}
+
+.navigation-button:hover {
+  background-color: grey;
+}
+
+.navigation-button:active {
+  background-color: rgba(30, 144, 255, 0.2);
 }
 </style>
